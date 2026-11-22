@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>退去費用判定ツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#FAF6EF; --surface:#FFFFFF; --surface2:#F3EDE1; --ink:#1C1A17; --muted:#5C554B;
+--line:#DDD3C2; --accent:#B3402A; --accent-ink:#FFFFFF;
+--green:#2E7D4F; --green-bg:#E6F2E9; --red:#B3402A; --red-bg:#FBEAE6;
+--amber:#8A5E00; --amber-bg:#FBF0D3; --blue:#33526B; --blue-bg:#E6EEF3;
+--shadow:0 1px 3px rgba(28,26,23,.08), 0 8px 24px rgba(28,26,23,.06);
+--radius:14px;
+}
+@media (prefers-color-scheme: dark){
+:root{
+--bg:#171512; --surface:#22201C; --surface2:#2A2721; --ink:#F2EDE3; --muted:#B8AF9E;
+--line:#3E3A32; --accent:#E0684E; --green:#7BC79A; --green-bg:#1E3328; --red:#F0907E; --red-bg:#3A2420;
+--amber:#E8C26A; --amber-bg:#38300F; --blue:#9DBFD4; --blue-bg:#22333F;
+--shadow:0 1px 3px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;line-height:1.65;font-size:16px}
+button,[role="button"],select,summary,input:not([type="checkbox"],[type="radio"]){min-height:2.25rem}
+button{cursor:pointer;font-family:inherit}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 56px}
+h1,h2,h3{font-family:"Shippori Mincho B1","Hiragino Mincho ProN",serif;line-height:1.35;margin:0}
+.num{font-family:"Noto Serif JP",serif;font-variant-numeric:tabular-nums}
+
+/* Hero */
+.hero{padding:18px 0 8px}
+.hero.tag{display:inline-block;background:var(--ink);color:var(--bg);font-size:.78rem;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px}
+.hero h1{font-size:2rem;margin:14px 0 10px;font-weight:700}
+.hero h1.accent{color:var(--accent)}
+.hero p{color:var(--muted);margin:0;max-width:640px}
+.principle{display:grid;grid-template-columns:1fr;gap:10px;margin:20px 0 4px}
+@media(min-width:640px){.principle{grid-template-columns:1fr 1fr 1fr}}
+.principle div{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.principle b{display:block;font-size:.95rem;margin-bottom:4px}
+.principle span{font-size:.85rem;color:var(--muted);display:block}
+.principle.no{font-family:"Noto Serif JP",serif;color:var(--accent);font-weight:600;font-size:.8rem;letter-spacing:.08em}
+
+/* Sections */
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 18px;margin-top:22px;box-shadow:var(--shadow)}
+section.card>h2{font-size:1.25rem;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+section.card>h2.step{font-family:"Zen Kaku Gothic New",sans-serif;font-size:.75rem;font-weight:900;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:3px 10px;letter-spacing:.06em}
+.hint{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+label{font-size:.85rem;font-weight:700;display:block;margin-bottom:6px}
+input[type="number"],input[type="text"],select,textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:9px 12px;font-size:1rem;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+textarea{line-height:1.6;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.field{margin-top:14px}
+
+/* Item rows */
+.item-row{border:1.5px solid var(--line);border-radius:var(--radius);padding:14px;margin-top:14px;background:var(--bg)}
+.item-row-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.item-row-head b{font-size:.9rem}
+.item-row-head .idx{font-family:"Noto Serif JP",serif;color:var(--accent)}
+.del-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 12px;font-size:.82rem;min-height:2.25rem}
+.del-btn:hover{color:var(--red);border-color:var(--red)}
+.row-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.row-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:560px){.row-grid,.row-grid2{grid-template-columns:1fr}}
+.row-grid label,.row-grid2 label{font-size:.78rem;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:.92rem;padding:9px 16px;min-height:2.75rem}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--ink);border-color:var(--ink)}
+.btn.small{padding:6px 12px;min-height:2.25rem;font-size:.85rem}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+/* Results */
+.summary{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+@media(min-width:640px){.summary{grid-template-columns:1fr 1fr 1fr}}
+.sum-box{border-radius:var(--radius);padding:16px;text-align:left}
+.sum-box small{display:block;font-size:.8rem;font-weight:700;letter-spacing:.03em}
+.sum-box.big{font-size:1.55rem;font-weight:900;line-height:1.3}
+.sum-box p{margin:4px 0 0;font-size:.82rem}
+.sum-claim{background:var(--surface2);border:1px solid var(--line)}
+.sum-guide{background:var(--green-bg);border:1px solid var(--green)}
+.sum-diff{background:var(--red-bg);border:1px solid var(--red)}
+.sum-diff.big{color:var(--accent)}
+.bar-wrap{margin-top:18px}
+.bar-label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.bar{height:16px;border-radius:999px;background:var(--surface2);overflow:hidden;display:flex}
+.bar.fill-guide{background:var(--green);height:100%}
+.bar.fill-diff{background:var(--accent);height:100%;opacity:.85}
+.result-item{border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:12px;background:var(--bg)}
+.result-item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.result-item h3{font-family:"Zen Kaku Gothic New",sans-serif;font-size:1rem;font-weight:900}
+.pill{display:inline-block;font-size:.78rem;font-weight:900;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.pill.landlord{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.pill.tenant{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.pill.dep,.pill.tokuyaku{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)}
+.pill.unknown{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)}
+.amounts{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.92rem}
+.amounts div span{display:block;font-size:.75rem;color:var(--muted);font-weight:700}
+.amounts div b{font-size:1.1rem}
+.reason{font-size:.88rem;color:var(--muted);margin:10px 0 0}
+.calc{font-size:.85rem;background:var(--surface2);border-radius:8px;padding:8px 12px;margin-top:10px}
+.empty{color:var(--muted);text-align:center;padding:28px 10px;font-size:.92rem}
+
+/* Checklist & notes */
+ul.check{list-style:none;margin:14px 0 0;padding:0}
+ul.check li{padding:10px 0 10px 34px;position:relative;border-bottom:1px dashed var(--line);font-size:.94rem}
+ul.check li:last-child{border-bottom:none}
+ul.check li::before{content:"✓";position:absolute;left:4px;top:9px;width:22px;height:22px;border-radius:50%;background:var(--green-bg);color:var(--green);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900}
+ul.check li b{display:block}
+ul.check li span{color:var(--muted);font-size:.86rem}
+.note-box{background:var(--surface2);border-radius:var(--radius);padding:14px 16px;font-size:.87rem;color:var(--muted);margin-top:14px}
+.note-box b{color:var(--ink)}
+.sources{font-size:.82rem;color:var(--muted);margin-top:26px;line-height:1.9}
+.sources a{color:var(--accent)}
+.photo-preview{max-width:100%;border-radius:10px;margin-top:10px;display:none;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:999px;font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){.toast{transition:none} html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+<span class="tag">国土交通省ガイドライン基準</span>
+<h1>退去費用、<span class="accent">払いすぎ</span>ていない？</h1>
+<p>退去の精算書（請求書）の項目を入力すると、国土交通省「原状回復をめぐるトラブルとガイドライン」の考え方で、項目ごとに「貸主負担が原則／負担割合で計算／借主負担が原則」に仕分けし、ガイドライン目安との差額を表示します。</p>
+<div class="principle">
+<div><span class="no">原則 1</span><b>経年変化・通常損耗は貸主負担</b><span>日焼け、家具の設置跡、画鋲の穴など。民法621条でも借主の原状回復義務の対象外と明記されています。</span></div>
+<div><span class="no">原則 2</span><b>自分の過失分は「残存価値」まで</b><span>クロスなどを傷つけた場合も全額ではなく、耐用年数から入居年数を差し引いた負担割合で計算します。</span></div>
+<div><span class="no">原則 3</span><b>特約＝必ず払う、ではない</b><span>クリーニング等の特約は、必要性・具体的な認識・明確な同意の3要件を満たさないと有効にならないと整理されています。</span></div>
+</div>
+</header>
+
+<!-- STEP 1 -->
+<section class="card" aria-labelledby="s1">
+<h2 id="s1"><span class="step">STEP 1</span>入居の情報</h2>
+<div class="grid2">
+<div class="field">
+<label for="years">入居期間（年）</label>
+<input type="number" id="years" min="0" max="60" step="1" value="3" inputmode="numeric">
+</div>
+<div class="field">
+<label for="months">入居期間（か月・端数）</label>
+<input type="number" id="months" min="0" max="11" step="1" value="0" inputmode="numeric">
+</div>
+</div>
+<div class="field">
+<label for="deposit">預けた敷金（任意・円）</label>
+<input type="number" id="deposit" min="0" step="1000" placeholder="例：120000" inputmode="numeric">
+<p class="hint">入力すると、結果に「敷金から差し引かれる額／返ってくる目安」も表示します。</p>
+</div>
+</section>
+
+<!-- Import -->
+<section class="card" aria-labelledby="sImp">
+<h2 id="sImp"><span class="step">取り込み</span>請求書から下書きを作る</h2>
+<p class="hint">精算書のテキストを貼り付けると、項目名と金額を読み取って下の入力欄へ下書きします。写真は内容の確認用に表示できます。どちらも、取り込んだ内容は必ず目で確認してから判定してください。</p>
+<div class="field">
+<label for="pasteText">精算書のテキストを貼り付け</label>
+<textarea id="pasteText" rows="4" placeholder="例）&#10;ハウスクリーニング代　38,500円&#10;鍵交換代　16,500円&#10;クロス張替え（LDK）　48,000円"></textarea>
+</div>
+<div class="btn-row">
+<button type="button" class="btn" id="parseBtn">テキストから項目を作る</button>
+<label class="btn" for="photoInput" style="margin:0">請求書の写真を表示</label>
+<input type="file" id="photoInput" accept="image/*" style="display:none">
+</div>
+<img id="photoPreview" class="photo-preview" alt="アップロードした請求書の写真">
+</section>
+
+<!-- STEP 2 -->
+<section class="card" aria-labelledby="s2">
+<h2 id="s2"><span class="step">STEP 2</span>請求項目を入力</h2>
+<p class="hint">精算書の行ごとに、項目の種類と請求金額を入れてください。「特約」は契約書にクリーニング代・鍵交換代などの負担が書かれていたかどうかです（分からなければ「未確認」でOK）。</p>
+<div id="rows"></div>
+<div class="btn-row">
+<button type="button" class="btn primary" id="addBtn">＋ 項目を追加</button>
+<button type="button" class="btn" id="sampleBtn">サンプルで試す</button>
+<button type="button" class="btn" id="clearBtn">すべて消す</button>
+</div>
+</section>
+
+<!-- STEP 3 -->
+<section class="card" aria-labelledby="s3">
+<h2 id="s3"><span class="step">STEP 3</span>判定結果</h2>
+<div id="resultArea">
+<p class="empty">項目を入力すると、ここに判定が表示されます。</p>
+</div>
+</section>
+
+<!-- Mail -->
+<section class="card" aria-labelledby="s4">
+<h2 id="s4"><span class="step">次の手</span>管理会社への確認メール文</h2>
+<p class="hint">判定結果をもとに、明細の開示とガイドラインに基づく見直しを求める文面の下書きを作ります。項目を入力すると自動で差し替わります。</p>
+<div class="field">
+<textarea id="mailText" rows="12" readonly></textarea>
+</div>
+<div class="btn-row">
+<button type="button" class="btn primary" id="copyMailBtn">メール文をコピー</button>
+<button type="button" class="btn" id="copyResultBtn">判定結果をコピー</button>
+</div>
+<h3 style="margin-top:26px;font-size:1.05rem">送る前にやること</h3>
+<ul class="check">
+<li><b>精算書の明細を求める</b><span>「一式」表記は、単価・数量・施工範囲に分けた明細を出してもらいましょう。</span></li>
+<li><b>契約書の特約を確認する</b><span>クリーニング・鍵交換などの特約は、金額や範囲が具体的に書かれているかが有効性の分かれ目です。</span></li>
+<li><b>入居時・退去時の写真と照らす</b><span>入居時からあった傷や汚れは借主負担になりません。写真・立会いメモが根拠になります。</span></li>
+<li><b>その場でサインしない</b><span>立会いでは金額に合意する前に内訳を確認し、納得できない点は「持ち帰って確認する」と伝えましょう。</span></li>
+</ul>
+<div class="note-box">
+<b>折り合えないときは</b>　消費生活センター（消費者ホットライン <b class="num">188</b>）に相談できます。賃貸の原状回復トラブルは国民生活センターへの相談が毎年1万3千件を超えています（2023年度13,273件／2024年度13,312件）。
+</div>
+</section>
+
+<div class="note-box" style="margin-top:22px">
+<b>このツールの位置づけ</b>　判定は国土交通省ガイドラインの一般的な整理に基づく<b>目安</b>です。ガイドライン自体に法的拘束力はなく、個別の契約内容や損耗の状況によって結論は変わります。最終的な判断に迷う場合は、消費生活センター等の公的窓口にご相談ください。入居時に新品でなかった設備・内装は、負担割合がここでの計算より低くなるのが一般的です。
+</div>
+
+<p class="sources">
+出典：国土交通省「原状回復をめぐるトラブルとガイドライン（再改訂版）」／ 民法第621条（賃借物の原状回復）／ 国民生活センター「賃貸住宅の原状回復トラブル」<br>
+主な耐用年数（ガイドライン別表）：クロス 6年 ／ カーペット・クッションフロア 6年 ／ 流し台 5年 ／ エアコン等の冷暖房機器 6年 ／ 給排水・衛生設備 15年。畳表・襖紙・障子紙と鍵の紛失は経過年数を考慮しません。
+</p>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+var ITEMS = [
+{id:"cleaning", label:"ハウスクリーニング", cat:"tokuyaku",
+reason:"通常の使用で生じた汚れの清掃は貸主負担が原則です。借主負担になるのは、有効なクリーニング特約がある場合に限られると整理されています。",
+action:"契約書の特約に金額・範囲が具体的に書かれているか確認しましょう。"},
+{id:"key_change", label:"鍵交換（鍵はなくしていない）", cat:"tokuyaku",
+reason:"鍵を紛失していないのに行う防犯目的の鍵交換は、原則として借主負担の対象外です。特約がある場合はその有効性が争点になります。",
+action:"特約の有無と、金額が契約時に明示されていたかを確認しましょう。"},
+{id:"key_loss", label:"鍵の紛失・破損による交換", cat:"tenant",
+reason:"鍵の紛失・破損は借主の管理上の問題とされ、交換費用は借主負担が原則です。経過年数は考慮されません。",
+action:"シリンダー交換の単価が極端に高くないか、明細で確認しましょう。"},
+{id:"wallpaper_age", label:"クロス：日焼け・変色・画鋲の穴など通常損耗", cat:"landlord",
+reason:"日光による日焼け、画鋲・ピンの穴、電気やけなどは通常損耗の代表例で、貸主負担が原則です。",
+action:"「全面張替え」になっていないか、範囲を確認しましょう。"},
+{id:"wallpaper_damage", label:"クロス：落書き・大きな汚れ・穴（自分の過失）", cat:"dep", years:6,
+reason:"借主の故意・過失による汚損・破損は借主負担ですが、負担は残存価値まで。クロスの耐用年数6年で負担割合を計算します。負担範囲も毀損箇所を含む一面分までが妥当とされています。",
+action:"部屋全体ではなく「一面分」で計算されているか確認しましょう。"},
+{id:"floor_damage", label:"フローリング／クッションフロア：傷・汚れ（自分の過失）", cat:"dep", years:6,
+reason:"過失による傷・汚れは借主負担ですが、クッションフロア等は耐用年数6年で負担割合を計算します（フローリングの部分補修は経過年数を考慮しない場合もあります）。",
+action:"補修単位（㎡単価・範囲）が明細に出ているか確認しましょう。"},
+{id:"floor_age", label:"床：家具のへこみ・設置跡", cat:"landlord",
+reason:"家具の設置による床のへこみ・設置跡は通常損耗として、貸主負担が原則です。",
+action:"通常損耗として扱われているか確認しましょう。"},
+{id:"tatami_age", label:"畳表・襖・障子：通常使用による汚れ・日焼け", cat:"landlord",
+reason:"通常の使用による畳・襖・障子の汚れや日焼けは、貸主負担が原則です。",
+action:"過失による汚損と混同されていないか確認しましょう。"},
+{id:"tatami_damage", label:"畳表・襖・障子：タバコ・ペット・過失による汚損", cat:"tenant",
+reason:"畳表・襖紙・障子紙は消耗品に近いものとして経過年数を考慮せず、過失による汚損は借主負担が原則です。",
+action:"枚数と単価が明細に出ているか確認しましょう。"},
+{id:"ac_clean", label:"エアコン内部洗浄（通常使用の範囲）", cat:"tokuyaku",
+reason:"通常使用の範囲のエアコン洗浄は貸主負担側と整理されます。借主負担になるのは有効な特約がある場合で、タバコのヤニ等が付着した場合は借主側になります。",
+action:"特約の有無を確認しましょう。ヤニ等がある場合は借主負担の目安になります。"},
+{id:"equipment", label:"設備の交換・修理（エアコン・給湯器などの経年故障）", cat:"landlord",
+reason:"設備の経年劣化による故障の修理・交換は貸主負担が原則です。借主の過失で壊した場合はこの限りではありません。",
+action:"故障の原因が経年劣化か過失か、説明を求めましょう。"},
+{id:"tobacco_pet", label:"タバコのヤニ・臭い／ペットの傷・臭い（壁・床以外）", cat:"tenant",
+reason:"タバコのヤニ・臭い、ペットによる傷・臭いは通常の使用を超える損耗として、借主負担が原則です。",
+action:"消臭・補修の範囲と単価が過大でないか明細で確認しましょう。"},
+{id:"mold", label:"結露を放置したことによるカビ・シミ", cat:"tenant",
+reason:"結露を放置して拡大したカビ・シミは、善管注意義務違反として借主負担が原則です。ただし建物の構造が原因の結露は貸主側の事情になります。",
+action:"結露の原因（構造か使用方法か）を確認しましょう。"},
+{id:"other", label:"その他・よくわからない項目", cat:"unknown",
+reason:"分類できない項目は、まず「何の費用か」の明細と根拠を確認することが出発点です。通常損耗か、過失による損耗かで扱いが変わります。",
+action:"明細の開示を求め、通常損耗／過失のどちらに当たるか説明してもらいましょう。"}
+];
+function itemById(id){ for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].id===id) return ITEMS[i];} return ITEMS[ITEMS.length-1];}
+function yen(n){ return Math.round(n).toLocaleString("ja-JP") + "円";}
+function stayYears(){
+var y = parseFloat(document.getElementById("years").value) || 0;
+var m = parseFloat(document.getElementById("months").value) || 0;
+if(m>11) m = 11; if(m<0) m = 0;
+return y + m/12;
+}
+
+var rowsEl = document.getElementById("rows");
+var rowSeq = 0;
+
+function makeRow(preset){
+rowSeq++;
+var div = document.createElement("div");
+div.className = "item-row";
+var opts = ITEMS.map(function(it){
+var sel = preset && preset.itemId===it.id? " selected": "";
+return '<option value="'+it.id+'"'+sel+'>'+it.label+'</option>';
+}).join("");
+var tok = preset && preset.tokuyaku? preset.tokuyaku: "unknown";
+div.innerHTML =
+'<div class="item-row-head"><b><span class="idx">項目 ' + rowSeq + '</span></b>' +
+'<button type="button" class="del-btn">この項目を削除</button></div>' +
+'<div class="row-grid">' +
+'<div><label>項目の種類</label><select class="f-item">'+opts+'</select></div>' +
+'<div><label>請求金額（円）</label><input type="number" class="f-amount" min="0" step="100" inputmode="numeric" placeholder="例：38500" value="'+(preset&&preset.amount?preset.amount:"")+'"></div>' +
+'</div>' +
+'<div class="row-grid2">' +
+'<div><label>契約書の特約（クリーニング・鍵交換など）</label><select class="f-tokuyaku">' +
+'<option value="unknown"'+(tok==="unknown"?" selected":"")+'>未確認・わからない</option>' +
+'<option value="yes"'+(tok==="yes"?" selected":"")+'>特約あり（契約書に記載あり）</option>' +
+'<option value="no"'+(tok==="no"?" selected":"")+'>特約なし</option>' +
+'</select></div>' +
+'<div><label>入居時の状態</label><select class="f-new">' +
+'<option value="new">新品・張替え直後だった</option>' +
+'<option value="used">新品ではなかった</option>' +
+'<option value="unknown" selected>わからない</option>' +
+'</select></div>' +
+'</div>';
+div.querySelector(".del-btn").addEventListener("click", function(){ div.remove(); renumber(); judge();});
+div.querySelectorAll("select,input").forEach(function(el){ el.addEventListener("input", judge); el.addEventListener("change", judge);});
+rowsEl.appendChild(div);
+renumber();
+return div;
+}
+function renumber(){
+var heads = rowsEl.querySelectorAll(".item-row .idx");
+heads.forEach(function(h,i){ h.textContent = "項目 " + (i+1);});
+}
+function readRows(){
+var out = [];
+rowsEl.querySelectorAll(".item-row").forEach(function(r){
+var amount = parseFloat(r.querySelector(".f-amount").value) || 0;
+out.push({
+item: itemById(r.querySelector(".f-item").value),
+amount: amount,
+tokuyaku: r.querySelector(".f-tokuyaku").value,
+isNew: r.querySelector(".f-new").value
+});
+});
+return out;
+}
+
+function judgeRow(row, years){
+var it = row.item, amt = row.amount;
+var res = {item:it, amount:amt, low:0, high:0, pill:"", pillClass:"", calc:""};
+if(it.cat==="landlord"){
+res.pill = "貸主負担が原則"; res.pillClass = "landlord"; res.low = 0; res.high = 0;
+} else if(it.cat==="tenant"){
+res.pill = "借主負担が原則"; res.pillClass = "tenant"; res.low = amt; res.high = amt;
+} else if(it.cat==="dep"){
+var rate = Math.max(0, 1 - years / it.years);
+var est = amt * rate;
+res.pill = "負担割合で計算"; res.pillClass = "dep"; res.low = est; res.high = est; res.rate = rate;
+res.calc = "負担割合 ＝ 1 − 入居 " + (Math.round(years*10)/10) + "年 ÷ 耐用年数 " + it.years + "年 ＝ " + Math.round(rate*100) + "%"
++ (rate===0? "（耐用年数を過ぎているため、目安は実質0円。ただし落書きを消す作業など修繕行為そのものの費用が残る場合があります）": "")
++ (row.isNew==="used"? "／入居時に新品ではなかったため、実際の負担割合はこれより低くなるのが一般的です。": "")
++ (row.isNew==="unknown"? "／入居時に新品でなかった場合は、実際の負担割合はこれより低くなります。": "");
+} else if(it.cat==="tokuyaku"){
+if(row.tokuyaku==="no"){
+res.pill = "貸主負担が原則"; res.pillClass = "landlord"; res.low = 0; res.high = 0;
+res.calc = "特約なしで計算しています。契約書に負担の記載がなければ、貸主負担が原則です。";
+} else if(row.tokuyaku==="yes"){
+res.pill = "特約の有効性次第"; res.pillClass = "tokuyaku"; res.low = 0; res.high = amt;
+res.calc = "特約が有効（必要性・合理性があり、負担内容を具体的に認識し、明確に同意していた）なら借主負担、有効でなければ貸主負担です。目安は0円〜請求額の範囲で表示しています。";
+} else {
+res.pill = "特約を確認すれば判定できる"; res.pillClass = "tokuyaku"; res.low = 0; res.high = amt;
+res.calc = "まず契約書で特約の有無と、金額・範囲の明記があるかを確認してください。目安は0円〜請求額の範囲で表示しています。";
+}
+} else {
+res.pill = "要確認・交渉できる"; res.pillClass = "unknown"; res.low = 0; res.high = amt;
+res.calc = "明細と根拠を確認するまで目安は確定しません。0円〜請求額の範囲で表示しています。";
+}
+return res;
+}
+
+var lastResults = [], lastTotals = null;
+
+function judge(){
+var years = stayYears();
+var rows = readRows().filter(function(r){ return r.amount > 0;});
+var area = document.getElementById("resultArea");
+if(rows.length===0){
+area.innerHTML = '<p class="empty">項目を入力すると、ここに判定が表示されます。</p>';
+lastResults = []; lastTotals = null; buildMail(); return;
+}
+var results = rows.map(function(r){ return judgeRow(r, years);});
+lastResults = results;
+var claim = results.reduce(function(s,r){return s+r.amount;},0);
+var low = results.reduce(function(s,r){return s+r.low;},0);
+var high = results.reduce(function(s,r){return s+r.high;},0);
+lastTotals = {claim:claim, low:low, high:high};
+var deposit = parseFloat(document.getElementById("deposit").value) || 0;
+
+var guideLabel = (Math.round(low)===Math.round(high))? yen(low): yen(low) + " 〜 " + yen(high);
+var diffMin = claim - high, diffMax = claim - low;
+var diffLabel = (Math.round(diffMin)===Math.round(diffMax))? yen(diffMin): yen(diffMin) + " 〜 " + yen(diffMax);
+
+var html = '<div class="summary">' +
+'<div class="sum-box sum-claim"><small>請求額の合計</small><div class="big num">' + yen(claim) + '</div><p>' + results.length + '項目</p></div>' +
+'<div class="sum-box sum-guide"><small>ガイドライン目安（あなたの負担）</small><div class="big num">' + guideLabel + '</div><p>入居 ' + (Math.round(years*10)/10) + '年で計算</p></div>' +
+'<div class="sum-box sum-diff"><small>見直し余地（請求 − 目安）</small><div class="big num">' + diffLabel + '</div><p>この分は根拠を確認する価値があります</p></div>' +
+'</div>';
+
+if(claim>0){
+var gpct = Math.max(0, Math.min(100, high/claim*100));
+html += '<div class="bar-wrap"><div class="bar-label"><span>ガイドライン目安（最大）</span><span>見直し余地</span></div>' +
+'<div class="bar"><div class="fill-guide" style="width:'+gpct+'%"></div><div class="fill-diff" style="width:'+(100-gpct)+'%"></div></div></div>';
+}
+if(deposit>0){
+var backLow = deposit - high, backHigh = deposit - low;
+html += '<div class="note-box">敷金 <b>' + yen(deposit) + '</b> に対して、ガイドライン目安で差し引かれるのは ' + guideLabel + '。' +
+(backLow>=0
+? '返金目安は <b>' + yen(backLow) + ' 〜 ' + yen(backHigh) + '</b> です。'
+: '目安の負担額が敷金を上回るため、追加請求の可能性があります（最大で ' + yen(high-deposit) + ' 程度）。') +
+'</div>';
+}
+
+results.forEach(function(r){
+var estLabel = (Math.round(r.low)===Math.round(r.high))? yen(r.low): yen(r.low) + " 〜 " + yen(r.high);
+html += '<div class="result-item"><div class="result-item-head"><h3>' + r.item.label + '</h3>' +
+'<span class="pill ' + r.pillClass + '">' + r.pill + '</span></div>' +
+'<div class="amounts"><div><span>請求額</span><b class="num">' + yen(r.amount) + '</b></div>' +
+'<div><span>ガイドライン目安</span><b class="num">' + estLabel + '</b></div>' +
+(typeof r.rate==="number"? '<div><span>あなたの負担割合</span><b class="num">' + Math.round(r.rate*100) + '%</b></div>': '') +
+'</div>' +
+'<p class="reason">' + r.item.reason + '</p>' +
+(r.calc? '<div class="calc">' + r.calc + '</div>': '') +
+'<p class="reason"><b>次の一手：</b>' + r.item.action + '</p></div>';
+});
+area.innerHTML = html;
+buildMail();
+}
+
+function buildMail(){
+var ta = document.getElementById("mailText");
+if(!lastTotals || lastResults.length===0){
+ta.value = "（項目を入力すると、見直しを求めたい項目が自動で文面に入ります）";
+return;
+}
+var targets = lastResults.filter(function(r){ return r.pillClass!=="tenant";});
+var lines = targets.map(function(r){
+var est = (Math.round(r.low)===Math.round(r.high))? yen(r.low): yen(r.low) + "〜" + yen(r.high);
+return "・" + r.item.label + "：" + yen(r.amount) + "（ガイドライン目安 " + est + "／" + r.pill + "）";
+});
+var body =
+"件名：退去費用精算書の内訳確認と見直しのお願い\n\n" +
+"お世話になっております。退去費用の精算書について、下記項目の内訳と算定根拠を確認させてください。\n\n" +
+(lines.length? lines.join("\n") + "\n\n": "") +
+"国土交通省「原状回復をめぐるトラブルとガイドライン」では、経年変化・通常損耗は貸主負担が原則とされ、借主の過失による損耗についても耐用年数に応じた負担割合で算定すると整理されています。\n" +
+"つきましては、各項目の単価・数量・施工範囲を分けた明細と、上記の考え方に基づく再計算の可否をご教示いただけますでしょうか。\n\n" +
+"よろしくお願いいたします。";
+ta.value = body;
+}
+
+function toast(msg){
+var t = document.getElementById("toast");
+t.textContent = msg; t.classList.add("show");
+setTimeout(function(){ t.classList.remove("show");}, 2200);
+}
+function copyText(text, msg){
+function done(){ toast(msg);}
+if(navigator.clipboard && navigator.clipboard.writeText){
+navigator.clipboard.writeText(text).then(done, function(){ fallback();});
+} else { fallback();}
+function fallback(){
+var ta = document.createElement("textarea");
+ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+document.body.appendChild(ta); ta.select();
+try{ document.execCommand("copy"); done();}catch(e){ toast("コピーできませんでした");}
+document.body.removeChild(ta);
+}
+}
+
+document.getElementById("copyMailBtn").addEventListener("click", function(){
+copyText(document.getElementById("mailText").value, "メール文をコピーしました");
+});
+document.getElementById("copyResultBtn").addEventListener("click", function(){
+if(!lastTotals){ toast("まず項目を入力してください"); return;}
+var lines = lastResults.map(function(r){
+var est = (Math.round(r.low)===Math.round(r.high))? yen(r.low): yen(r.low) + "〜" + yen(r.high);
+return "・" + r.item.label + "：請求 " + yen(r.amount) + " → 目安 " + est + "（" + r.pill + "）";
+});
+var text = "\n請求合計：" + yen(lastTotals.claim) + "\nガイドライン目安：" +
+((Math.round(lastTotals.low)===Math.round(lastTotals.high))? yen(lastTotals.low): yen(lastTotals.low) + "〜" + yen(lastTotals.high)) +
+"\n\n" + lines.join("\n") + "\n\n※国土交通省ガイドラインに基づく目安です。";
+copyText(text, "判定結果をコピーしました");
+});
+
+document.getElementById("addBtn").addEventListener("click", function(){ makeRow(); judge();});
+document.getElementById("clearBtn").addEventListener("click", function(){
+rowsEl.innerHTML = ""; makeRow(); judge(); toast("入力をリセットしました");
+});
+document.getElementById("sampleBtn").addEventListener("click", function(){
+rowsEl.innerHTML = "";
+document.getElementById("years").value = 4; document.getElementById("months").value = 0;
+document.getElementById("deposit").value = 132000;
+makeRow({itemId:"cleaning", amount:38500, tokuyaku:"no"});
+makeRow({itemId:"key_change", amount:16500, tokuyaku:"no"});
+makeRow({itemId:"wallpaper_damage", amount:48000});
+makeRow({itemId:"ac_clean", amount:11000, tokuyaku:"unknown"});
+judge();
+document.getElementById("s3").scrollIntoView({behavior:"smooth"});
+toast("サンプルを入力しました（入居4年・敷金132,000円）");
+});
+["years","months","deposit"].forEach(function(id){
+document.getElementById(id).addEventListener("input", judge);
+});
+
+/* Paste parser */
+var KEYWORDS = [
+["cleaning", ["クリーニング","清掃"]],
+["key_loss", ["鍵紛失","キー紛失"]],
+["key_change", ["鍵交換","キー交換","シリンダー"]],
+["wallpaper_damage", ["クロス","壁紙"]],
+["floor_damage", ["フローリング","クッションフロア","床"]],
+["tatami_damage", ["畳","襖","障子"]],
+["ac_clean", ["エアコン"]],
+["tobacco_pet", ["ヤニ","消臭","ペット"]],
+["mold", ["カビ"]],
+["equipment", ["給湯器","設備","修理"]]
+];
+document.getElementById("parseBtn").addEventListener("click", function(){
+var text = document.getElementById("pasteText").value;
+if(!text.trim()){ toast("テキストを貼り付けてください"); return;}
+var lines = text.split(/\n/), added = 0;
+// Remove the initial empty row if untouched
+var existing = readRows();
+if(existing.length===1 && existing[0].amount===0){ rowsEl.innerHTML="";}
+lines.forEach(function(line){
+var m = line.replace(/，/g,",").match(/([\d,]+)\s*円/);
+if(!m) return;
+var amount = parseInt(m[1].replace(/,/g,""),10);
+if(!amount) return;
+var itemId = "other";
+for(var i=0;i<KEYWORDS.length;i++){
+for(var j=0;j<KEYWORDS[i][1].length;j++){
+if(line.indexOf(KEYWORDS[i][1][j])>=0){ itemId = KEYWORDS[i][0]; break;}
+}
+if(itemId!=="other") break;
+}
+makeRow({itemId:itemId, amount:amount});
+added++;
+});
+judge();
+if(added>0){ toast(added + "項目を取り込みました。種類と特約を確認してください");}
+else { toast("金額（〜円）が見つかりませんでした");}
+});
+document.getElementById("photoInput").addEventListener("change", function(e){
+var f = e.target.files && e.target.files[0];
+if(!f) return;
+var img = document.getElementById("photoPreview");
+img.src = URL.createObjectURL(f);
+img.style.display = "block";
+toast("写真を表示しました。項目は下の欄へ入力してください");
+});
+
+makeRow();
+judge();
+})();
+</script>
+</body>
+</html>
