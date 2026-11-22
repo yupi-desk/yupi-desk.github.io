@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>レンジ、残り1秒で止める選手権</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #14120f;
+        --bg2: #1e1a16;
+        --panel: #262019;
+        --panel-line: #453a2c;
+        --ink: #f5e9d7;
+        --ink-dim: #c9b299;
+        --ink-faint: #9a8468;
+        --amber: #ffb340;
+        --amber-deep: #e07f1f;
+        --red: #ff5a3c;
+        --red-deep: #d63a1e;
+        --green: #7ee2a0;
+        --led: #ffd76a;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+        background:
+          radial-gradient(120% 55% at 50% -10%, #38302a 0%, transparent 55%),
+          linear-gradient(180deg, #241f1a 0%, var(--bg) 55%),
+          var(--bg);
+        color: var(--ink);
+        min-height: 100dvh;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .wrap {
+        max-width: 660px;
+        margin: 0 auto;
+        padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        min-height: 100dvh;
+        gap: 14px;
+      }
+      /* ---------- screen switching ---------- */
+      .view { width: 100%; }
+      .view[hidden] { display: none !important; }
+      .play-view {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .result-view {
+        max-width: 430px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      /* ---------- microwave ---------- */
+      .mw-scene { position: relative; }
+      .mw-frame { position: relative; filter: drop-shadow(0 18px 22px rgba(0,0,0,.55)); }
+      .mw-shadow {
+        height: 16px;
+        margin: 0 14px 0;
+        background: radial-gradient(50% 100% at 50% 0%, rgba(0,0,0,.65), transparent 70%);
+      }
+      svg.mw { display: block; width: 100%; height: auto; }
+
+      .spin-a { animation: spin 7s linear infinite; animation-play-state: paused; transform-origin: 146px 192px; }
+      .running .spin-a { animation-play-state: running; }
+      .rim { animation: dashmove 2.4s linear infinite; animation-play-state: paused; }
+      .running .rim { animation-play-state: running; }
+      @keyframes dashmove { to { stroke-dashoffset: -48; } }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .cavity-light { opacity: 0; transition: opacity .45s ease; }
+      .running .cavity-light { opacity: 1; }
+      .done .cavity-light { opacity: .28; }
+
+      .steam { opacity: 0; }
+      .done .steam { animation: steamUp 2.6s ease-in-out infinite; }
+      .done .steam.s2 { animation-delay: .8s; }
+      .done .steam.s3 { animation-delay: 1.6s; }
+      @keyframes steamUp {
+        0% { opacity: 0; transform: translateY(4px); }
+        35% { opacity: .7; }
+        100% { opacity: 0; transform: translateY(-9px); }
+      }
+
+      .door-glass { transition: filter .3s; }
+      .over .door-glass { filter: brightness(1.3); }
+
+      /* status line under microwave */
+      .status {
+        min-height: 24px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink-dim);
+        letter-spacing: .04em;
+      }
+      .status.hot { color: var(--amber); }
+      .status.bad { color: var(--red); }
+      .status.good { color: var(--green); }
+
+      /* ---------- panel buttons (built into the microwave) ---------- */
+      .panel-actions {
+        position: absolute;
+        left: 72%;
+        width: 22.5%;
+        top: 69%;
+        display: flex;
+        flex-direction: column;
+      }
+      .panel-actions button {
+        font-family: inherit;
+        cursor: pointer;
+        width: 100%;
+        min-height: 50px;
+        border-radius: 7px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        touch-action: manipulation;
+        line-height: 1.25;
+        padding: 6px 2px;
+      }
+      .panel-actions button small {
+        display: block;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        opacity: .75;
+      }
+      .btn-start {
+        background: linear-gradient(180deg, #fdfdfd 0%, #d9dade 45%, #b9bbc0 55%, #cfd0d4 100%);
+        color: #1c1c1e;
+        font-size: 15px;
+        border: 1px solid #6f7076;
+        box-shadow: inset 0 1px 0 #fff, inset 0 -2px 3px rgba(0,0,0,.28), 0 2px 4px rgba(0,0,0,.55);
+      }
+      .btn-start:active { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.5); background: linear-gradient(180deg, #cfd0d4, #aeb0b5); }
+      .btn-stop {
+        background: linear-gradient(180deg, #e2574c 0%, #c93a2c 50%, #a92c1f 100%);
+        color: #fff6f2;
+        font-size: 15px;
+        border: 1px solid #5f130b;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 3px rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.55);
+        display: none;
+      }
+      .btn-stop:active { transform: translateY(1px); box-shadow: inset 0 2px 5px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.5); }
+      .running-ui .btn-start { display: none; }
+      .running-ui .btn-stop { display: block; animation: pulse 1s ease-in-out infinite; }
+      @keyframes pulse {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.18); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .running-ui .btn-stop { animation: none; }
+        .spin-a { animation-duration: 24s; }
+      }
+
+      /* ---------- result ---------- */
+      .result {
+        background: var(--panel);
+        border: 1px solid var(--panel-line);
+        border-radius: 20px;
+        padding: 18px 18px 16px;
+        text-align: center;
+      }
+      .result .rank {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--amber);
+        line-height: 1.4;
+        margin: 0 0 4px;
+      }
+      .result .rank.legend { color: var(--led); text-shadow: 0 0 14px rgba(255,215,106,.55); }
+      .result .rank.bad { color: var(--red); }
+      .result .big-time {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 44px;
+        line-height: 1.1;
+        color: var(--ink);
+        margin: 6px 0 2px;
+      }
+      .result .big-time small { font-size: 18px; color: var(--ink-dim); }
+      .result .diff {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ink-dim);
+        margin: 2px 0 0;
+      }
+      .result .diff b { color: var(--ink); font-size: 19px; }
+      .result .note { font-size: 13px; color: var(--ink-faint); margin: 8px 0 0; line-height: 1.6; }
+
+      /* ---------- rice state ---------- */
+      .rice {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--panel-line);
+      }
+      .rice h3 {
+        margin: 0 0 2px;
+        font-size: 12px;
+        letter-spacing: .14em;
+        color: var(--ink-faint);
+        font-weight: 700;
+      }
+      .rice-fig { width: 168px; margin: 0 auto; display: block; }
+      .rice-temp {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 30px;
+        line-height: 1.15;
+        color: var(--ink);
+        margin: 2px 0 0;
+      }
+      .rice-temp small { font-size: 13px; color: var(--ink-faint); font-family: "M PLUS Rounded 1c", sans-serif; font-weight: 700; }
+      .rice-comment { font-size: 15px; font-weight: 800; color: var(--amber); margin: 3px 0 0; line-height: 1.5; }
+      /* steam amount per state */
+      .rice-fig .rsteam { opacity: 0; }
+      .rice[data-state="warm"] .rsteam { opacity: .28; }
+      .rice[data-state="good"] .rsteam { opacity: .75; }
+      .rice[data-state="perfect"] .rsteam { opacity: .9; }
+      .rice[data-state="hot"] .rsteam { opacity: 1; }
+      .rice[data-state="warm"] .rsteam, .rice[data-state="good"] .rsteam,
+      .rice[data-state="perfect"] .rsteam, .rice[data-state="hot"] .rsteam {
+        animation: riceSteam 2.4s ease-in-out infinite;
+      }
+      .rice[data-state="hot"] .rsteam { animation-duration: 1.5s; }
+      .rice[data-state="good"] .rsteam.s2, .rice[data-state="perfect"] .rsteam.s2, .rice[data-state="hot"] .rsteam.s2 { animation-delay: .6s; }
+      .rice[data-state="good"] .rsteam.s3, .rice[data-state="perfect"] .rsteam.s3, .rice[data-state="hot"] .rsteam.s3 { animation-delay: 1.2s; }
+      @keyframes riceSteam {
+        0% { transform: translateY(3px); }
+        50% { transform: translateY(-3px); }
+        100% { transform: translateY(3px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .rice-fig .rsteam { animation: none !important; }
+      }
+      /* rice color / sheen per state */
+      .rice[data-state="cold"] .rice-top { fill: #cfc8ba; }
+      .rice[data-state="cold"] .rice-grain { fill: #bdb4a2; }
+      .rice[data-state="warm"] .rice-top { fill: #efe7d6; }
+      .rice[data-state="warm"] .rice-grain { fill: #ddd2bd; }
+      .rice[data-state="hot"] .rice-top { fill: #fff6e2; }
+      .rice-fig .sheen { opacity: 0; }
+      .rice[data-state="good"] .sheen, .rice[data-state="perfect"] .sheen { opacity: .55; }
+      .rice[data-state="hot"] .sheen { opacity: .3; }
+      .result .actions { display: flex; gap: 10px; margin-top: 16px; }
+      .btn-again {
+        flex: 1.2;
+        font-family: inherit;
+        border: none;
+        cursor: pointer;
+        min-height: 48px;
+        border-radius: 18px;
+        font-weight: 800;
+        letter-spacing: .05em;
+        touch-action: manipulation;
+        background: linear-gradient(180deg, #ffc966, var(--amber-deep));
+        color: #2a1802;
+        font-size: 17px;
+        padding: 14px 10px;
+        box-shadow: 0 5px 0 #8a4d0d;
+      }
+      .btn-again:active { transform: translateY(2px) scale(.99); box-shadow: 0 2px 0 #8a4d0d; }
+      .btn-share {
+        flex: 1;
+        background: #0f0c09;
+        color: var(--ink);
+        border: 1px solid var(--panel-line);
+        font-size: 15px;
+        padding: 14px 10px;
+        text-decoration: none;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+        border-radius: 18px;
+        font-weight: 800;
+        min-height: 48px;
+      }
+      .btn-share svg { flex: none; }
+
+      .best {
+        text-align: center;
+        font-size: 13px;
+        color: var(--ink-faint);
+        font-weight: 700;
+        min-height: 20px;
+      }
+      .best b { color: var(--amber); font-size: 15px; }
+      .best .newbest {
+        display: inline-block;
+        background: var(--amber);
+        color: #2a1802;
+        border-radius: 999px;
+        padding: 1px 9px;
+        margin-left: 6px;
+        font-size: 11px;
+        vertical-align: 2px;
+      }
+
+      .judge-table {
+        margin-top: 4px;
+        background: rgba(0,0,0,.22);
+        border: 1px solid var(--panel-line);
+        border-radius: 16px;
+        padding: 12px 16px;
+        font-size: 12.5px;
+        color: var(--ink-dim);
+      }
+      .judge-table h2 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: var(--ink);
+        letter-spacing: .06em;
+      }
+      .judge-table ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+      .judge-table li { display: flex; justify-content: space-between; gap: 12px; }
+      .judge-table li span:first-child { color: var(--ink-faint); font-family: "Share Tech Mono", monospace; font-size: 12px; padding-top: 1px; }
+      footer { text-align: center; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap" id="app">
+      <!-- ======== play screen: microwave only ======== -->
+      <div class="view play-view" id="playView">
+      <div class="mw-scene" id="mwScene">
+        <div class="mw-frame">
+        <svg class="mw" viewBox="0 0 400 300" role="img" aria-label="電子レンジのイラスト">
+          <defs>
+            <linearGradient id="steelGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#e8e9ec"/>
+              <stop offset=".18" stop-color="#c6c8cd"/>
+              <stop offset=".5" stop-color="#a9abb1"/>
+              <stop offset=".82" stop-color="#8f9198"/>
+              <stop offset="1" stop-color="#7a7c83"/>
+            </linearGradient>
+            <linearGradient id="steelEdge" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>
+              <stop offset=".06" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset=".94" stop-color="#000000" stop-opacity="0"/>
+              <stop offset="1" stop-color="#000000" stop-opacity=".28"/>
+            </linearGradient>
+            <linearGradient id="doorGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3a3b40"/>
+              <stop offset=".5" stop-color="#232428"/>
+              <stop offset="1" stop-color="#151517"/>
+            </linearGradient>
+            <linearGradient id="panelGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#2e2e33"/>
+              <stop offset=".5" stop-color="#1d1d21"/>
+              <stop offset="1" stop-color="#121214"/>
+            </linearGradient>
+            <linearGradient id="ledGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0d2417"/>
+              <stop offset="1" stop-color="#05130b"/>
+            </linearGradient>
+            <radialGradient id="dialGrad" cx=".38" cy=".32" r=".85">
+              <stop offset="0" stop-color="#f2f2f4"/>
+              <stop offset=".55" stop-color="#b9bbc0"/>
+              <stop offset="1" stop-color="#83858c"/>
+            </radialGradient>
+            <radialGradient id="glowGrad" cx=".5" cy=".45" r=".78">
+              <stop offset="0" stop-color="#ffd9a0" stop-opacity=".98"/>
+              <stop offset=".5" stop-color="#ff9d3c" stop-opacity=".62"/>
+              <stop offset="1" stop-color="#8a4408" stop-opacity=".92"/>
+            </radialGradient>
+            <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".20"/>
+              <stop offset=".38" stop-color="#ffffff" stop-opacity=".04"/>
+              <stop offset=".62" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="1" stop-color="#ffffff" stop-opacity=".10"/>
+            </linearGradient>
+            <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#5a5b61"/>
+              <stop offset=".35" stop-color="#d7d8dc"/>
+              <stop offset=".65" stop-color="#9a9ca2"/>
+              <stop offset="1" stop-color="#4c4d52"/>
+            </linearGradient>
+            <pattern id="meshPat" width="5" height="5" patternUnits="userSpaceOnUse">
+              <circle cx="2.5" cy="2.5" r="1.05" fill="#000" opacity=".5"/>
+            </pattern>
+            <pattern id="brushPat" width="46" height="3" patternUnits="userSpaceOnUse">
+              <rect width="46" height="1" y="1" fill="#ffffff" opacity=".05"/>
+            </pattern>
+          </defs>
+
+          <!-- ======== body: stainless cabinet ======== -->
+          <rect x="5" y="7" width="390" height="276" rx="13" fill="url(#steelGrad)"/>
+          <rect x="5" y="7" width="390" height="276" rx="13" fill="url(#brushPat)"/>
+          <rect x="5" y="7" width="390" height="276" rx="13" fill="url(#steelEdge)"/>
+          <rect x="5" y="7" width="390" height="276" rx="13" fill="none" stroke="#55575e" stroke-width="1.5"/>
+          <rect x="8.5" y="10.5" width="383" height="269" rx="10" fill="none" stroke="#000" stroke-opacity=".28"/>
+          <!-- top vent slits -->
+          <g fill="#000" opacity=".28">
+            <rect x="30" y="13" width="120" height="3" rx="1.5"/>
+            <rect x="160" y="13" width="120" height="3" rx="1.5"/>
+          </g>
+          <g fill="#fff" opacity=".35">
+            <rect x="30" y="16.5" width="120" height="1" rx=".5"/>
+            <rect x="160" y="16.5" width="120" height="1" rx=".5"/>
+          </g>
+
+          <!-- ======== door ======== -->
+          <rect x="17" y="24" width="252" height="238" rx="9" fill="url(#doorGrad)" stroke="#0a0a0b" stroke-width="2"/>
+          <rect x="19" y="26" width="248" height="234" rx="8" fill="none" stroke="#ffffff" stroke-opacity=".14"/>
+          <!-- window recess -->
+          <rect x="29" y="36" width="216" height="214" rx="5" fill="#060505" stroke="#000" stroke-width="2"/>
+          <!-- cavity interior -->
+          <rect x="33" y="40" width="208" height="206" rx="3" fill="#171310"/>
+          <rect x="33" y="40" width="208" height="206" rx="3" fill="none" stroke="#000" stroke-opacity=".6"/>
+          <!-- cavity back wall shading -->
+          <rect x="33" y="40" width="208" height="60" fill="#000" opacity=".35"/>
+          <g class="cavity-light">
+            <rect x="33" y="40" width="208" height="206" rx="3" fill="url(#glowGrad)"/>
+            <rect x="33" y="40" width="208" height="26" fill="#fff3d6" opacity=".5"/>
+          </g>
+
+          <!-- food on glass turntable -->
+          <g>
+            <ellipse cx="137" cy="240" rx="84" ry="8" fill="#000" opacity=".55"/>
+            <ellipse cx="137" cy="234" rx="86" ry="11" fill="#cfd4d6" opacity=".85"/>
+            <ellipse cx="137" cy="232" rx="86" ry="11" fill="#eef1f1" opacity=".55"/>
+            <ellipse class="rim" cx="137" cy="232" rx="77" ry="9.5" fill="none" stroke="#9aa0a2" stroke-width="2" stroke-dasharray="10 14" opacity=".8"/>
+            <ellipse cx="137" cy="231" rx="66" ry="8" fill="#dfe3e2" opacity=".6"/>
+            <!-- bowl -->
+            <path d="M94 204 h104 c-3 19 -15 28 -29 30 h-42 c-14 -2 -26 -11 -29 -30 z" fill="#e8e4dc"/>
+            <path d="M94 204 h104 c-3 19 -15 28 -29 30 h-42 c-14 -2 -26 -11 -29 -30 z" fill="none" stroke="#b9b2a4" stroke-width="1"/>
+            <path d="M94 204 h104 c-1 6 -3 10 -5 14 h-94 c-2 -4 -4 -8 -5 -14 z" fill="#b3372c"/>
+            <ellipse cx="146" cy="203" rx="52" ry="9.5" fill="#fdf6e8"/>
+            <ellipse cx="146" cy="201" rx="40" ry="6.5" fill="#ffffff"/>
+            <!-- toppings ride the turntable -->
+            <g class="spin-a">
+              <circle cx="146" cy="199" r="6" fill="#b02a35"/>
+              <circle cx="144" cy="197" r="2" fill="#d96a72"/>
+              <rect x="116" y="196" width="7" height="5" rx="1" fill="#22301f" transform="rotate(-14 119 198)"/>
+              <rect x="170" y="195" width="7" height="5" rx="1" fill="#22301f" transform="rotate(11 173 197)"/>
+              <circle cx="126" cy="204" r="2.2" fill="#3d5a34"/>
+              <circle cx="166" cy="205" r="2.2" fill="#3d5a34"/>
+            </g>
+          </g>
+
+          <!-- steam -->
+          <g stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none">
+            <path class="steam s1" d="M126 184 q5 -8 0 -15 q-5 -7 0 -14"/>
+            <path class="steam s2" d="M146 182 q5 -8 0 -15 q-5 -7 0 -14"/>
+            <path class="steam s3" d="M166 184 q5 -8 0 -15 q-5 -7 0 -14"/>
+          </g>
+
+          <!-- door mesh + smoked glass -->
+          <rect class="door-glass" x="29" y="36" width="216" height="214" rx="5" fill="#0b0a09" opacity=".38"/>
+          <rect x="29" y="36" width="216" height="214" rx="5" fill="url(#meshPat)"/>
+          <rect class="door-glass" x="29" y="36" width="216" height="214" rx="5" fill="url(#glassGrad)"/>
+          <rect x="29" y="36" width="216" height="214" rx="5" fill="none" stroke="#000" stroke-opacity=".7" stroke-width="1.5"/>
+
+          <!-- vertical handle -->
+          <rect x="252" y="48" width="11" height="188" rx="5.5" fill="url(#handleGrad)" stroke="#3c3d42" stroke-width="1"/>
+          <rect x="249" y="52" width="4" height="26" rx="2" fill="#3c3d42"/>
+          <rect x="249" y="208" width="4" height="26" rx="2" fill="#3c3d42"/>
+
+          <!-- ======== control panel ======== -->
+          <rect x="279" y="24" width="104" height="238" rx="8" fill="url(#panelGrad)" stroke="#000" stroke-width="1.5"/>
+          <rect x="281" y="26" width="100" height="234" rx="7" fill="none" stroke="#ffffff" stroke-opacity=".09"/>
+          <!-- brand + spec -->
+          <text x="331" y="40" text-anchor="middle" font-size="8" letter-spacing="2.5" fill="#a7a8ad" font-weight="700">HEAT&#8202;·&#8202;PRO</text>
+          <text x="331" y="50" text-anchor="middle" font-size="6.5" letter-spacing="1" fill="#6d6e74">500W / 庫内17L</text>
+          <!-- LED display -->
+          <rect x="287" y="56" width="88" height="36" rx="4" fill="url(#ledGrad)" stroke="#000" stroke-width="1.5"/>
+          <rect x="289" y="58" width="84" height="10" rx="3" fill="#bff5cf" opacity=".07"/>
+          <text id="ledText" x="331" y="84" text-anchor="middle"
+                font-family="'Share Tech Mono', monospace" font-size="24" fill="#8df0a8"
+                style="text-shadow:0 0 9px rgba(90,240,150,.75)">10.00</text>
+          <text x="331" y="104" text-anchor="middle" font-size="8" fill="#9a9ba1" font-weight="700" letter-spacing="2">あたため</text>
+
+          <!-- dial -->
+          <g stroke="#55565c" stroke-width="1.4">
+            <path d="M331 112 v5 M319 116 l2.5 4.3 M343 116 l-2.5 4.3 M315 128 h5 M347 128 h-5"/>
+          </g>
+          <circle cx="331" cy="130" r="19" fill="#0c0c0d"/>
+          <circle cx="331" cy="130" r="16.5" fill="url(#dialGrad)" stroke="#55575e" stroke-width="1"/>
+          <circle cx="331" cy="130" r="16.5" fill="none" stroke="#000" stroke-opacity=".25"/>
+          <line x1="331" y1="130" x2="331" y2="119" stroke="#26262a" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="331" cy="130" r="3" fill="#6d6e74"/>
+          <text x="331" y="160" text-anchor="middle" font-size="6.5" fill="#6d6e74" letter-spacing="1">時間・解凍</text>
+
+          <!-- small preset buttons (decorative, like a real panel) -->
+          <g font-size="7.5" fill="#c9cacd" font-weight="700" text-anchor="middle">
+            <rect x="288" y="166" width="40" height="15" rx="3.5" fill="#2c2c30" stroke="#000"/>
+            <rect x="288" y="166" width="40" height="7" rx="3.5" fill="#fff" opacity=".07"/>
+            <text x="308" y="176.5">ごはん</text>
+            <rect x="334" y="166" width="40" height="15" rx="3.5" fill="#2c2c30" stroke="#000"/>
+            <rect x="334" y="166" width="40" height="7" rx="3.5" fill="#fff" opacity=".07"/>
+            <text x="354" y="176.5">お弁当</text>
+            <rect x="288" y="185" width="40" height="15" rx="3.5" fill="#2c2c30" stroke="#000"/>
+            <rect x="288" y="185" width="40" height="7" rx="3.5" fill="#fff" opacity=".07"/>
+            <text x="308" y="195.5">牛乳</text>
+            <rect x="334" y="185" width="40" height="15" rx="3.5" fill="#2c2c30" stroke="#000"/>
+            <rect x="334" y="185" width="40" height="7" rx="3.5" fill="#fff" opacity=".07"/>
+            <text x="354" y="195.5">解凍</text>
+          </g>
+          <!-- recess behind the real start/stop button -->
+          <rect x="287" y="206" width="88" height="50" rx="6" fill="#0a0a0b" stroke="#000"/>
+          <rect x="287" y="206" width="88" height="50" rx="6" fill="none" stroke="#ffffff" stroke-opacity=".06"/>
+
+          <!-- feet -->
+          <rect x="36" y="283" width="34" height="10" rx="3" fill="#26262a"/>
+          <rect x="330" y="283" width="34" height="10" rx="3" fill="#26262a"/>
+        </svg>
+
+        <!-- start / stop: real buttons living on the panel -->
+        <div class="panel-actions" id="controls">
+          <button class="btn-start" id="btnStart" type="button"><small>あたため</small>スタート</button>
+          <button class="btn-stop" id="btnStop" type="button"><small>とりけし</small>止める！</button>
+        </div>
+        </div>
+        <div class="mw-shadow"></div>
+      </div>
+
+      <div class="status" id="status">レンジの「スタート」を押すと加熱が始まります</div>
+      </div>
+
+      <!-- ======== result screen ======== -->
+      <div class="view result-view" id="resultView" hidden>
+      <section class="result" id="result" aria-live="polite">
+        <p class="rank" id="rankText"></p>
+        <div class="big-time"><span id="stopTime">-.--</span><small> 秒でストップ</small></div>
+        <p class="diff" id="diffText"></p>
+        <p class="note" id="resultNote"></p>
+
+        <div class="rice" id="riceBox" data-state="cold">
+          <h3>ごはんの状態</h3>
+          <svg class="rice-fig" viewBox="0 0 200 150" role="img" aria-label="ごはん茶碗のイラスト">
+            <defs>
+              <linearGradient id="bowlGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fdfaf4"/>
+                <stop offset=".55" stop-color="#e9e2d4"/>
+                <stop offset="1" stop-color="#cfc4ae"/>
+              </linearGradient>
+            </defs>
+            <!-- steam -->
+            <g stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none">
+              <path class="rsteam s1" d="M72 62 q6 -10 0 -19 q-6 -9 0 -18"/>
+              <path class="rsteam s2" d="M100 58 q6 -10 0 -19 q-6 -9 0 -18"/>
+              <path class="rsteam s3" d="M128 62 q6 -10 0 -19 q-6 -9 0 -18"/>
+            </g>
+            <!-- heaped rice -->
+            <path class="rice-top" d="M42 84 q6 -30 30 -36 q10 -12 28 -12 q18 0 28 12 q24 6 30 36 z" fill="#fdf6e8"/>
+            <g class="rice-grain" fill="#e3d9c4">
+              <ellipse cx="76" cy="56" rx="5" ry="3" transform="rotate(-18 76 56)"/>
+              <ellipse cx="104" cy="48" rx="5" ry="3" transform="rotate(8 104 48)"/>
+              <ellipse cx="128" cy="60" rx="5" ry="3" transform="rotate(20 128 60)"/>
+              <ellipse cx="92" cy="66" rx="5" ry="3" transform="rotate(-6 92 66)"/>
+              <ellipse cx="118" cy="72" rx="5" ry="3" transform="rotate(14 118 72)"/>
+            </g>
+            <ellipse class="sheen" cx="88" cy="52" rx="26" ry="8" fill="#ffffff" transform="rotate(-8 88 52)"/>
+            <!-- bowl -->
+            <path d="M34 84 h132 c-3 26 -20 40 -44 44 h-44 c-24 -4 -41 -18 -44 -44 z" fill="url(#bowlGrad)"/>
+            <path d="M34 84 h132 c-1 7 -2 12 -4 17 h-124 c-2 -5 -3 -10 -4 -17 z" fill="#b3372c"/>
+            <path d="M34 84 h132 c-1 7 -2 12 -4 17 h-124 c-2 -5 -3 -10 -4 -17 z" fill="none" stroke="#8e2a21" stroke-width="1"/>
+            <rect x="82" y="130" width="36" height="7" rx="2" fill="#b9ae97"/>
+          </svg>
+          <p class="rice-temp"><span id="riceTemp">--</span>℃<small>（推定）</small></p>
+          <p class="rice-comment" id="riceComment"></p>
+        </div>
+
+        <div class="actions">
+          <button class="btn-again" id="btnAgain" type="button">もう一度</button>
+          <a class="btn-share" id="btnShare" href="#" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-6.4L6.4 22H3.3l7.3-8.3L2.8 2h6.4l4.4 5.9L18.9 2zm-1.1 18h1.7L7.4 3.9H5.6L17.8 20z"/></svg>
+            Xで共有
+          </a>
+        </div>
+      </section>
+
+      <div class="best" id="bestLine">ベスト記録はまだありません</div>
+
+      <div class="judge-table">
+        <h2>判定と称号</h2>
+        <ul>
+          <li><span>±0.05</span><span>伝説級・レンジの申し子</span></li>
+          <li><span>±0.15</span><span>世界レベル</span></li>
+          <li><span>±0.30</span><span>深夜の常連</span></li>
+          <li><span>±0.60</span><span>惜しい</span></li>
+          <li><span>それ以上</span><span>まだまだ</span></li>
+          <li><span>0秒経過</span><span>普通に鳴りました</span></li>
+        </ul>
+      </div>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        "use strict";
+        var TOTAL = 10000;      // 10.00s
+        var TARGET = 1000;      // 1.00s remaining
+        var HIDE_AT = 3000;     // display hides below 3.00s remaining
+
+        var app = document.getElementById("app");
+        var playView = document.getElementById("playView");
+        var resultView = document.getElementById("resultView");
+        var scene = document.getElementById("mwScene");
+        var led = document.getElementById("ledText");
+        var status = document.getElementById("status");
+        var controls = document.getElementById("controls");
+        var btnStart = document.getElementById("btnStart");
+        var btnStop = document.getElementById("btnStop");
+        var result = document.getElementById("result");
+        var rankText = document.getElementById("rankText");
+        var stopTime = document.getElementById("stopTime");
+        var diffText = document.getElementById("diffText");
+        var resultNote = document.getElementById("resultNote");
+        var btnAgain = document.getElementById("btnAgain");
+        var btnShare = document.getElementById("btnShare");
+        var bestLine = document.getElementById("bestLine");
+        var riceBox = document.getElementById("riceBox");
+        var riceTemp = document.getElementById("riceTemp");
+        var riceComment = document.getElementById("riceComment");
+
+        var state = "idle"; // idle | running | done
+        var startAt = 0;
+        var rafId = null;
+        var best = null; // { err: ms, remain: ms }
+        var hiddenAnnounced = false;
+
+        /* ---------- Web Audio ---------- */
+        var actx = null;
+        function audio() {
+          if (!actx) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) actx = new AC();
+          }
+          if (actx && actx.state === "suspended") actx.resume();
+          return actx;
+        }
+        function tone(freq, t0, dur, type, vol, slideTo) {
+          if (!actx) return;
+          var o = actx.createOscillator();
+          var g = actx.createGain();
+          o.type = type || "sine";
+          o.frequency.setValueAtTime(freq, t0);
+          if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+          g.gain.setValueAtTime(0.0001, t0);
+          g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+          o.connect(g); g.connect(actx.destination);
+          o.start(t0); o.stop(t0 + dur + 0.05);
+        }
+        function popSound() {
+          if (!audio()) return;
+          var t = actx.currentTime;
+          tone(520, t, 0.09, "triangle", 0.25, 180);
+        }
+        function successSound() {
+          if (!audio()) return;
+          var t = actx.currentTime;
+          tone(1318, t, 0.11, "square", 0.10);
+          tone(1760, t + 0.11, 0.22, "square", 0.10);
+        }
+        function legendSound() {
+          if (!audio()) return;
+          var t = actx.currentTime;
+          tone(1318, t, 0.10, "square", 0.10);
+          tone(1568, t + 0.10, 0.10, "square", 0.10);
+          tone(2093, t + 0.20, 0.30, "square", 0.11);
+        }
+        function overSound() {
+          if (!audio()) return;
+          var t = actx.currentTime;
+          // microwave finish: bright bell-like "ピーッ"
+          tone(2093, t, 0.85, "sine", 0.22);
+          tone(4186, t, 0.85, "sine", 0.05);
+          tone(2093, t + 0.28, 0.57, "sine", 0.12);
+        }
+        var humNodes = null;
+        function humStart() {
+          if (!audio()) return;
+          humStop();
+          var o = actx.createOscillator();
+          var o2 = actx.createOscillator();
+          var g = actx.createGain();
+          o.type = "sawtooth"; o.frequency.value = 58;
+          o2.type = "sine"; o2.frequency.value = 116;
+          g.gain.value = 0.016;
+          o.connect(g); o2.connect(g); g.connect(actx.destination);
+          o.start(); o2.start();
+          humNodes = { o: o, o2: o2, g: g };
+        }
+        function humStop() {
+          if (!humNodes) return;
+          try { humNodes.o.stop(); humNodes.o2.stop(); } catch (e) {}
+          humNodes = null;
+        }
+
+        /* ---------- formatting ---------- */
+        function fmt(ms) {
+          var s = Math.max(0, ms) / 1000;
+          return s.toFixed(2);
+        }
+        function fmtErr(ms) {
+          return (ms / 1000).toFixed(2);
+        }
+
+        /* ---------- game flow ---------- */
+        function setStatus(text, cls) {
+          status.textContent = text;
+          status.className = "status" + (cls ? " " + cls : "");
+        }
+
+        function judge(errMs) {
+          if (errMs <= 50)  return { rank: "伝説級・レンジの申し子", cls: "legend", note: "誤差0.05秒以内。もはやレンジと心が通じています。" };
+          if (errMs <= 150) return { rank: "世界レベル", cls: "", note: "世界大会でも決勝に残れる体内時計です。" };
+          if (errMs <= 300) return { rank: "深夜の常連", cls: "", note: "毎晩この勝負をしている人の安定感。" };
+          if (errMs <= 600) return { rank: "惜しい", cls: "", note: "あと少し。リズムを体に刻んでもう一回。" };
+          return { rank: "まだまだ", cls: "", note: "体内時計はこれから鍛えられます。レンジは待ってくれませんが。" };
+        }
+
+        /* ---------- rice state ---------- */
+        // temp from heated seconds: 9s heated (=1.00s left) -> 62C
+        function riceTempC(remainMs) {
+          var heated = (TOTAL - remainMs) / 1000;
+          return Math.round(20 + heated * 4.7);
+        }
+        function riceState(remainMs, over) {
+          if (over) return { key: "hot", comment: "あっつあつ。でも選手権的には失敗" };
+          var remain = remainMs / 1000;
+          var err = Math.abs(remainMs - TARGET);
+          if (err <= 100) return { key: "perfect", comment: "完璧なあたたかさ。ふっくらツヤツヤ" };
+          if (remain > 2.5) return { key: "cold", comment: "まだ冷たい。芯が残ってる" };
+          if (remain > 1.5) return { key: "warm", comment: "ぬるい。あと一歩" };
+          if (remain >= 0.5) return { key: "good", comment: "ほっかほか。いい感じ" };
+          return { key: "hot", comment: "あっつあつ。でも選手権的には失敗" };
+        }
+        function showRice(remainMs, over) {
+          var rs = riceState(remainMs, over);
+          riceBox.setAttribute("data-state", rs.key);
+          riceTemp.textContent = riceTempC(remainMs);
+          riceComment.textContent = rs.comment;
+          return rs;
+        }
+
+        function showPlay() {
+          resultView.hidden = true;
+          playView.hidden = false;
+        }
+        function showResult() {
+          playView.hidden = true;
+          resultView.hidden = false;
+          window.scrollTo(0, 0);
+        }
+
+        function startGame() {
+          popSound();
+          state = "running";
+          hiddenAnnounced = false;
+          showPlay();
+          scene.classList.remove("done", "over");
+          scene.classList.add("running");
+          controls.classList.add("running-ui");
+          led.textContent = "10.00";
+          setStatus("あたため中… 残り3秒で表示が消えます", "hot");
+          startAt = performance.now();
+          humStart();
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(tick);
+        }
+
+        function tick() {
+          if (state !== "running") return;
+          var remain = TOTAL - (performance.now() - startAt);
+          if (remain <= 0) { finishOver(); return; }
+          if (remain < HIDE_AT) {
+            if (!hiddenAnnounced) {
+              hiddenAnnounced = true;
+              setStatus("表示が消えました… 体内時計を信じて止める！", "hot");
+            }
+            led.textContent = "?.??";
+          } else {
+            led.textContent = fmt(remain);
+          }
+          rafId = requestAnimationFrame(tick);
+        }
+
+        function finishStop() {
+          var remain = TOTAL - (performance.now() - startAt);
+          state = "done";
+          cancelAnimationFrame(rafId);
+          humStop();
+          scene.classList.remove("running");
+          scene.classList.add("done");
+          controls.classList.remove("running-ui");
+          led.textContent = fmt(remain);
+
+          var err = Math.abs(remain - TARGET);
+          var j = judge(err);
+          var isNewBest = false;
+          if (best === null || err < best.err) {
+            best = { err: err, remain: remain };
+            isNewBest = true;
+          }
+
+          if (err <= 50) legendSound(); else successSound();
+
+          rankText.textContent = j.rank;
+          rankText.className = "rank" + (j.cls ? " " + j.cls : "");
+          stopTime.textContent = fmt(remain);
+          if (remain > TARGET) {
+            diffText.innerHTML = "目標まで <b>あと " + fmtErr(err) + " 秒</b>（早止め）";
+          } else if (remain < TARGET) {
+            diffText.innerHTML = "目標を <b>" + fmtErr(err) + " 秒</b> 行きすぎ（遅止め）";
+          } else {
+            diffText.innerHTML = "<b>誤差 0.00 秒</b>・完全一致！";
+          }
+          resultNote.textContent = j.note;
+          showRice(remain, false);
+          setStatus("止めました！ 残り " + fmt(remain) + " 秒", "good");
+          updateBest(isNewBest);
+          setShare({
+            text: "🍱 レンジ、残り1秒で止める選手権\n残り " + fmt(remain) + " 秒でストップ！ 誤差 " + fmtErr(err) + " 秒（" + j.rank + "）\nごはんを" + riceTempC(remain) + "℃に温めました\n#レンジ残り1秒選手権"
+          });
+          showResult();
+        }
+
+        function finishOver() {
+          state = "done";
+          cancelAnimationFrame(rafId);
+          humStop();
+          overSound();
+          scene.classList.remove("running");
+          scene.classList.add("done", "over");
+          controls.classList.remove("running-ui");
+          led.textContent = "0.00";
+          rankText.textContent = "普通に鳴りました";
+          rankText.className = "rank bad";
+          stopTime.textContent = "0.00";
+          diffText.innerHTML = "残り0秒を過ぎて <b>チンッ</b> と鳴ってしまいました";
+          resultNote.textContent = "深夜にあの音を響かせてしまった…。次は気持ち早めに。";
+          showRice(0, true);
+          setStatus("チンッ！ 加熱が終わってしまいました", "bad");
+          updateBest(false);
+          setShare({
+            text: "🍱 レンジ、残り1秒で止める選手権\n止めそびれて普通に「チンッ」と鳴りました…（称号：普通に鳴りました）\nごはんは" + riceTempC(0) + "℃まで温まったけど、選手権的には失敗\n#レンジ残り1秒選手権"
+          });
+          showResult();
+        }
+
+        function updateBest(isNew) {
+          if (best === null) {
+            bestLine.textContent = "ベスト記録はまだありません";
+            return;
+          }
+          bestLine.innerHTML = "セッションのベスト記録：残り " + fmt(best.remain) + " 秒 ／ 誤差 <b>" + fmtErr(best.err) + " 秒</b>" +
+            (isNew ? '<span class="newbest">NEW!</span>' : "");
+        }
+
+        function setShare(payload) {
+          var url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(payload.text);
+          btnShare.setAttribute("href", url);
+        }
+
+        btnStart.addEventListener("click", function () {
+          if (state === "running") return;
+          startGame();
+        });
+        btnAgain.addEventListener("click", function () {
+          startGame();
+        });
+        btnStop.addEventListener("click", function () {
+          if (state !== "running") return;
+          popSound();
+          finishStop();
+        });
+        // keyboard: space to start/stop
+        document.addEventListener("keydown", function (e) {
+          if (e.code !== "Space") return;
+          e.preventDefault();
+          if (state === "running") { popSound(); finishStop(); }
+          else startGame();
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>最後のからあげ譲り合い選手権</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #fdf3e3;
+        --bg-grad-1: #fdeeda;
+        --bg-grad-2: #f9dcb8;
+        --panel: #fffaf2;
+        --panel-border: #eecfa5;
+        --ink: #4a2f1d;
+        --ink-soft: #8a6242;
+        --accent: #e06426;
+        --accent-dark: #b84a15;
+        --accent-soft: #ffe3c2;
+        --wife: #d9577a;
+        --wife-soft: #ffdbe4;
+        --husband: #3d7ea6;
+        --husband-soft: #d3e9f4;
+        --table: #b5713a;
+        --table-dark: #96592a;
+        --bubble: #ffffff;
+        --bubble-border: #e8c491;
+        --cold: #7d94a6;
+        --shadow: rgba(122, 66, 18, 0.16);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #2b1c11;
+          --bg-grad-1: #33200f;
+          --bg-grad-2: #241509;
+          --panel: #3d2716;
+          --panel-border: #6b4423;
+          --ink: #f7e3c8;
+          --ink-soft: #cfa87e;
+          --accent: #f07f3c;
+          --accent-dark: #ff9a58;
+          --accent-soft: #59331a;
+          --wife-soft: #59303e;
+          --husband-soft: #27485c;
+          --table: #7c4a22;
+          --table-dark: #633a19;
+          --bubble: #4a2e18;
+          --bubble-border: #7d5527;
+          --cold: #9db8c9;
+          --shadow: rgba(0, 0, 0, 0.45);
+        }
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(120% 90% at 50% 0%, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+        display: flex;
+        justify-content: center;
+      }
+      button { font-family: inherit; min-height: 3rem; cursor: pointer; }
+      .app {
+        width: 100%;
+        max-width: 480px;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+        gap: 10px;
+      }
+
+      /* ---------- header stats ---------- */
+      .stats {
+        display: flex;
+        gap: 8px;
+      }
+      .stat {
+        flex: 1;
+        background: var(--panel);
+        border: 2px solid var(--panel-border);
+        border-radius: 16px;
+        padding: 7px 10px 8px;
+        text-align: center;
+        box-shadow: 0 3px 0 var(--shadow);
+      }
+      .stat .label { font-size: 0.68rem; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.08em; }
+      .stat .value { font-size: 1.35rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+      .stat .value small { font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
+      .temp-wrap { display: flex; align-items: center; justify-content: center; gap: 7px; }
+      .temp-bar {
+        width: 52px; height: 9px; border-radius: 99px;
+        background: var(--accent-soft); overflow: hidden; flex: none;
+      }
+      .temp-bar i {
+        display: block; height: 100%; width: 100%;
+        background: linear-gradient(90deg, #f5a83c, #e06426);
+        border-radius: 99px;
+        transition: width 0.45s ease, background 0.45s ease;
+      }
+      .temp-bar i.cold { background: var(--cold); }
+
+      .lead {
+        text-align: center;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+      .lead b { color: var(--accent-dark); }
+
+      /* ---------- stage ---------- */
+      .stage {
+        position: relative;
+        flex: 1;
+        min-height: 340px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .people {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 2px;
+        position: relative;
+        z-index: 3;
+      }
+      .person { width: 40%; max-width: 168px; text-align: center; position: relative; }
+      .person svg { width: 100%; height: auto; display: block; }
+      .person .name {
+        display: inline-block;
+        margin-top: 2px;
+        font-size: 0.78rem; font-weight: 800;
+        padding: 2px 12px; border-radius: 99px;
+      }
+      .person.husband .name { background: var(--husband-soft); color: var(--husband); }
+      .person.wife .name { background: var(--wife-soft); color: var(--wife); }
+      @media (prefers-color-scheme: dark) {
+        .person.husband .name { color: #a8d2ea; }
+        .person.wife .name { color: #ffb3c6; }
+      }
+      .person.bounce { animation: bounce 0.45s ease; }
+      @keyframes bounce {
+        0% { transform: translateY(0); }
+        35% { transform: translateY(-7px); }
+        100% { transform: translateY(0); }
+      }
+
+      /* speech bubbles */
+      .bubble {
+        position: absolute;
+        top: -14px;
+        width: 128px;
+        background: var(--bubble);
+        border: 2px solid var(--bubble-border);
+        border-radius: 14px;
+        padding: 7px 9px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1.35;
+        box-shadow: 0 4px 10px var(--shadow);
+        opacity: 0;
+        transform: scale(0.7) translateY(6px);
+        pointer-events: none;
+        z-index: 5;
+      }
+      .bubble::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        width: 12px; height: 12px;
+        background: var(--bubble);
+        border-right: 2px solid var(--bubble-border);
+        border-bottom: 2px solid var(--bubble-border);
+        transform: rotate(45deg);
+      }
+      .husband .bubble { left: 6px; }
+      .husband .bubble::after { left: 34px; }
+      .wife .bubble { right: 6px; }
+      .wife .bubble::after { right: 34px; }
+      .bubble.show {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* table + sliding karaage */
+      .table-zone { position: relative; margin-top: -6px; }
+      .table-top {
+        position: relative;
+        z-index: 1;
+        height: 74px;
+        background: linear-gradient(180deg, var(--table) 0%, var(--table-dark) 100%);
+        border-radius: 18px 18px 22px 22px;
+        box-shadow: 0 10px 18px var(--shadow), inset 0 3px 0 rgba(255,255,255,0.18);
+        position: relative;
+      }
+      .table-top::before, .table-top::after {
+        content: "";
+        position: absolute; top: 12px; bottom: 12px;
+        width: 34px; border-radius: 50%;
+        border: 2px dashed rgba(255,255,255,0.22);
+      }
+      .table-top::before { left: 14px; }
+      .table-top::after { right: 14px; }
+      .track {
+        position: relative;
+        z-index: 2;
+        margin: 0 10% -16px;
+        height: 102px;
+      }
+      .carrier {
+        position: absolute;
+        left: 50%; bottom: 0;
+        width: 104px;
+        transform: translateX(-50%);
+        transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1);
+        text-align: center;
+      }
+      .carrier.to-wife { transform: translateX(calc(-50% + 92px)); }
+      .carrier.to-husband { transform: translateX(calc(-50% - 92px)); }
+      @media (max-width: 360px) {
+        .carrier.to-wife { transform: translateX(calc(-50% + 74px)); }
+        .carrier.to-husband { transform: translateX(calc(-50% - 74px)); }
+      }
+      .steam { height: 30px; position: relative; }
+      .steam span {
+        position: absolute; bottom: 0;
+        width: 7px; height: 22px;
+        border-radius: 99px;
+        background: radial-gradient(ellipse at center, rgba(190,190,190,0.85), rgba(190,190,190,0));
+        filter: blur(2px);
+        opacity: 0;
+        animation: rise 1.8s ease-in-out infinite;
+      }
+      .steam span:nth-child(1) { left: 34%; animation-delay: 0s; }
+      .steam span:nth-child(2) { left: 50%; animation-delay: 0.55s; height: 28px; }
+      .steam span:nth-child(3) { left: 64%; animation-delay: 1.1s; }
+      @keyframes rise {
+        0% { transform: translateY(4px) translateX(0) scaleY(0.6); opacity: 0; }
+        35% { opacity: var(--steam-o, 0.9); }
+        100% { transform: translateY(-14px) translateX(3px) scaleY(1.15); opacity: 0; }
+      }
+      .karaage-svg { width: 62px; height: auto; display: block; margin: 0 auto -8px; position: relative; z-index: 2; }
+      .plate {
+        width: 104px; height: 20px; margin: 0 auto;
+        background: radial-gradient(ellipse at 50% 35%, #ffffff 0%, #f3e3cb 55%, #dfc49c 100%);
+        border-radius: 50%;
+        box-shadow: 0 4px 6px rgba(90, 45, 5, 0.35);
+        position: relative; z-index: 1;
+      }
+      @media (prefers-color-scheme: dark) {
+        .plate { background: radial-gradient(ellipse at 50% 35%, #e8dcc8 0%, #c9b28c 55%, #a5855c 100%); }
+      }
+      .cold-note {
+        text-align: center;
+        font-size: 0.8rem; font-weight: 700; color: var(--cold);
+        height: 1.2em; margin-top: 8px;
+      }
+
+      /* ---------- buttons ---------- */
+      .actions { display: flex; gap: 10px; margin-top: 4px; }
+      .yield-btn {
+        flex: 1;
+        border: none;
+        border-radius: 18px;
+        padding: 12px 8px 11px;
+        font-size: 1.22rem;
+        font-weight: 800;
+        color: #fff;
+        box-shadow: 0 5px 0 var(--shadow), 0 8px 14px var(--shadow);
+        transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.2s;
+        touch-action: manipulation;
+        user-select: none;
+      }
+      .yield-btn small { display: block; font-size: 0.7rem; font-weight: 700; opacity: 0.9; margin-top: 1px; }
+      .yield-btn.husband-btn { background: linear-gradient(180deg, #4d93bd, #35719a); box-shadow: 0 5px 0 #26536f, 0 8px 14px var(--shadow); }
+      .yield-btn.wife-btn { background: linear-gradient(180deg, #e4708f, #cf4d72); box-shadow: 0 5px 0 #9c3355, 0 8px 14px var(--shadow); }
+      .yield-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--shadow); }
+      .yield-btn:disabled { opacity: 0.45; }
+      .hint { text-align: center; font-size: 0.75rem; color: var(--ink-soft); font-weight: 500; margin: 0; }
+
+      /* ---------- result overlay ---------- */
+      .overlay {
+        position: fixed; inset: 0;
+        background: rgba(43, 24, 8, 0.55);
+        display: none;
+        align-items: center; justify-content: center;
+        padding: 20px;
+        z-index: 20;
+        backdrop-filter: blur(2px);
+      }
+      .overlay.show { display: flex; }
+      .result {
+        background: var(--panel);
+        border: 3px solid var(--panel-border);
+        border-radius: 26px;
+        padding: 26px 22px 22px;
+        width: 100%; max-width: 380px;
+        text-align: center;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+        animation: pop-in 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      @keyframes pop-in { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .result .cold-plate { font-size: 3rem; line-height: 1; }
+      .result h2 { font-size: 2rem; font-weight: 800; margin: 8px 0 4px; color: var(--cold); }
+      .result p.sub { margin: 0 0 16px; font-size: 0.92rem; font-weight: 500; color: var(--ink-soft); line-height: 1.6; }
+      .score-box {
+        background: var(--accent-soft);
+        border-radius: 16px;
+        padding: 12px;
+        display: flex; gap: 8px;
+        margin-bottom: 18px;
+      }
+      .score-box div { flex: 1; }
+      .score-box .k { font-size: 0.7rem; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.06em; }
+      .score-box .v { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .score-box .v small { font-size: 0.8rem; color: var(--ink-soft); }
+      .rank { font-size: 0.9rem; font-weight: 800; color: var(--accent-dark); margin: -6px 0 16px; }
+      .result .btns { display: flex; flex-direction: column; gap: 9px; }
+      .again-btn {
+        border: none; border-radius: 16px;
+        background: linear-gradient(180deg, #f07f3c, #e06426);
+        color: #fff; font-size: 1.1rem; font-weight: 800;
+        padding: 13px;
+        box-shadow: 0 4px 0 var(--accent-dark);
+      }
+      .again-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-dark); }
+      .share-btn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        border-radius: 16px;
+        background: #14171a; color: #fff;
+        font-size: 1rem; font-weight: 800;
+        padding: 13px;
+        text-decoration: none;
+        min-height: 3rem;
+      }
+      @media (prefers-color-scheme: dark) { .share-btn { background: #e7e9ea; color: #14171a; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .steam span { animation: none; }
+        .carrier { transition: none; }
+        .person.bounce { animation: none; }
+        .result { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="stats" aria-label="ゲームの状態">
+        <div class="stat">
+          <div class="label">譲り合い回数</div>
+          <div class="value"><span id="count">0</span><small> 回</small></div>
+        </div>
+        <div class="stat">
+          <div class="label">からあげ温度</div>
+          <div class="temp-wrap">
+            <div class="value"><span id="temp">85</span><small>℃</small></div>
+            <div class="temp-bar"><i id="tempBar"></i></div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="label">経過時間</div>
+          <div class="value"><span id="timer">0:00</span></div>
+        </div>
+      </div>
+
+      <p class="lead">お皿の上には、最後のからあげが <b>1個</b> だけ。<br />どちらが食べるかは…譲り合いで決めよう。</p>
+
+      <div class="stage">
+        <div class="people">
+          <div class="person husband" id="husband">
+            <div class="bubble" id="bubbleHusband"></div>
+            <svg viewBox="0 0 120 118" role="img" aria-label="夫">
+              <!-- body -->
+              <path d="M22 118 C22 92 38 80 60 80 C82 80 98 92 98 118 Z" fill="#4d93bd"/>
+              <path d="M52 82 L60 96 L68 82 L64 78 L60 84 L56 78 Z" fill="#fdf6ec"/>
+              <!-- face -->
+              <circle cx="60" cy="52" r="34" fill="#ffd9b3"/>
+              <!-- hair -->
+              <path d="M26 50 C24 22 42 14 60 14 C78 14 96 22 94 50 C90 34 78 28 60 28 C42 28 30 34 26 50 Z" fill="#4a3220"/>
+              <!-- eyes -->
+              <g class="eyes-normal">
+                <circle cx="47" cy="54" r="3.4" fill="#3a2415"/>
+                <circle cx="73" cy="54" r="3.4" fill="#3a2415"/>
+              </g>
+              <!-- brows -->
+              <path d="M40 45 Q47 41 54 45" stroke="#4a3220" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <path d="M66 45 Q73 41 80 45" stroke="#4a3220" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <!-- mouth: smile / worried swap -->
+              <path class="mouth-smile" d="M52 66 Q60 73 68 66" stroke="#3a2415" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+              <path class="mouth-worry" d="M53 69 Q60 64 67 69" stroke="#3a2415" stroke-width="2.8" fill="none" stroke-linecap="round" style="display:none"/>
+              <!-- cheeks -->
+              <ellipse cx="38" cy="64" rx="6" ry="3.6" fill="#ffb08a" opacity="0.7"/>
+              <ellipse cx="82" cy="64" rx="6" ry="3.6" fill="#ffb08a" opacity="0.7"/>
+              <!-- sweat -->
+              <path class="sweat" d="M95 38 C95 44 91 46 89 43 C87 40 90 34 92 31 C94 34 95 35 95 38 Z" fill="#7ec3e8" style="display:none"/>
+            </svg>
+            <span class="name">夫</span>
+          </div>
+
+          <div class="person wife" id="wife">
+            <div class="bubble" id="bubbleWife"></div>
+            <svg viewBox="0 0 120 118" role="img" aria-label="妻">
+              <!-- hair back -->
+              <path d="M24 58 C20 26 40 12 60 12 C80 12 100 26 96 58 C94 84 88 96 82 100 L38 100 C32 96 26 84 24 58 Z" fill="#6b4226"/>
+              <!-- body -->
+              <path d="M24 118 C24 94 40 82 60 82 C80 82 96 94 96 118 Z" fill="#e4708f"/>
+              <path d="M48 84 Q60 94 72 84 L72 90 Q60 99 48 90 Z" fill="#fdf6ec"/>
+              <!-- face -->
+              <circle cx="60" cy="52" r="32" fill="#ffe0c2"/>
+              <!-- hair front -->
+              <path d="M28 48 C28 24 44 16 60 16 C76 16 92 24 92 48 C86 33 74 30 60 30 C46 30 34 33 28 48 Z" fill="#6b4226"/>
+              <!-- eyes -->
+              <circle cx="48" cy="54" r="3.4" fill="#3a2415"/>
+              <circle cx="72" cy="54" r="3.4" fill="#3a2415"/>
+              <circle cx="49.2" cy="52.6" r="1.2" fill="#fff"/>
+              <circle cx="73.2" cy="52.6" r="1.2" fill="#fff"/>
+              <!-- brows -->
+              <path d="M41 45 Q48 41 55 45" stroke="#6b4226" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <path d="M65 45 Q72 41 79 45" stroke="#6b4226" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <!-- mouth -->
+              <path class="mouth-smile" d="M52 66 Q60 73 68 66" stroke="#3a2415" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+              <path class="mouth-worry" d="M53 69 Q60 64 67 69" stroke="#3a2415" stroke-width="2.8" fill="none" stroke-linecap="round" style="display:none"/>
+              <!-- cheeks -->
+              <ellipse cx="39" cy="64" rx="6.4" ry="3.8" fill="#ff9db1" opacity="0.75"/>
+              <ellipse cx="81" cy="64" rx="6.4" ry="3.8" fill="#ff9db1" opacity="0.75"/>
+              <!-- sweat -->
+              <path class="sweat" d="M25 38 C25 44 29 46 31 43 C33 40 30 34 28 31 C26 34 25 35 25 38 Z" fill="#7ec3e8" style="display:none"/>
+            </svg>
+            <span class="name">妻</span>
+          </div>
+        </div>
+
+        <div class="table-zone">
+          <div class="track">
+            <div class="carrier" id="carrier">
+              <div class="steam" id="steam" aria-hidden="true"><span></span><span></span><span></span></div>
+              <svg class="karaage-svg" viewBox="0 0 80 62" role="img" aria-label="最後のからあげ">
+                <path id="karaageBody" d="M14 44 C6 34 12 18 24 14 C28 6 44 4 52 10 C66 12 72 24 68 36 C74 44 64 54 52 52 C38 58 20 56 14 44 Z" fill="#e08a2e"/>
+                <path d="M24 20 C28 15 38 14 42 18 C36 20 30 24 24 20 Z" fill="#f2ac4e" opacity="0.85"/>
+                <path d="M52 30 C58 28 64 32 63 38 C57 39 52 36 52 30 Z" fill="#c96f1d" opacity="0.8"/>
+                <circle cx="34" cy="34" r="3" fill="#c96f1d" opacity="0.7"/>
+                <circle cx="48" cy="44" r="2.4" fill="#f2ac4e" opacity="0.8"/>
+              </svg>
+              <div class="plate"></div>
+            </div>
+          </div>
+          <div class="table-top"></div>
+          <div class="cold-note" id="coldNote"></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="yield-btn husband-btn" id="btnHusband" type="button">どうぞ →<small>夫が妻に譲る</small></button>
+        <button class="yield-btn wife-btn" id="btnWife" type="button">← どうぞ<small>妻が夫に譲る</small></button>
+      </div>
+      <p class="hint">譲れば譲るほど、からあげは冷めていきます。</p>
+    </div>
+
+    <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="result">
+        <div class="cold-plate" aria-hidden="true">
+          <svg width="72" height="52" viewBox="0 0 80 62"><path d="M14 44 C6 34 12 18 24 14 C28 6 44 4 52 10 C66 12 72 24 68 36 C74 44 64 54 52 52 C38 58 20 56 14 44 Z" fill="#927c68"/><ellipse cx="40" cy="58" rx="36" ry="4" fill="#cbb694"/></svg>
+        </div>
+        <h2 id="resultTitle">冷めました。</h2>
+        <p class="sub">ふたりとも優しかったので、<br />唐揚げは冷めました。</p>
+        <div class="score-box">
+          <div><div class="k">譲り合い回数</div><div class="v"><span id="finalCount">0</span><small> 回</small></div></div>
+          <div><div class="k">冷めるまでの時間</div><div class="v" id="finalTime">0:00</div></div>
+        </div>
+        <p class="rank" id="rankText"></p>
+        <div class="btns">
+          <a class="share-btn" id="shareBtn" href="#" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2.1h3.4l-7.4 8.5 8.7 11.3h-6.8l-5.3-6.8-6.1 6.8H2l7.9-9.1L1.6 2.1h7l4.8 6.2 5.5-6.2Zm-1.2 17.8h1.9L7.1 4H5.1l12.6 15.9Z"/></svg>
+            結果をポストする
+          </a>
+          <button class="again-btn" id="againBtn" type="button">もう一度</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var LINES = [
+          "どうぞどうぞ",
+          "いやいや、どうぞ",
+          "ほんとに、どうぞ",
+          "先にどうぞ",
+          "お先にどうぞ",
+          "私はもう、お腹いっぱいで…",
+          "いえいえ、あなたこそ",
+          "遠慮なさらず、どうぞ",
+          "どうぞ、どうぞ、どうぞ…",
+          "ぜひ、召し上がってください",
+          "一口だけでも…どうぞ",
+          "あつあつですよ、今のうちに",
+          "……どうぞ（小声）",
+          "どうぞ…！（汗）",
+          "お願いです、食べてください",
+          "どうぞ…（震え声）",
+          "ねえ、そろそろ冷めちゃうよ…？",
+          "もう、どっちか食べて…？",
+          "…………どうぞ。",
+          "ど、どうぞ…（限界）"
+        ];
+        var LATE_LINES = [
+          "…………どうぞ。",
+          "ど、どうぞ…",
+          "（ふたりとも、もう意地である）",
+          "……どうぞ（無の境地）",
+          "さ、冷たいけど…どうぞ"
+        ];
+        var COLD_NOTES = [
+          { under: 65, text: "" },
+          { under: 45, text: "まだ温かい。今ならまだ間に合う…" },
+          { under: 28, text: "ぬるくなってきた…" },
+          { under: 14, text: "ほぼ常温。湯気ももう出ない。" },
+          { under: 1, text: "" }
+        ];
+
+        var START_TEMP = 85;
+        var count = 0;
+        var temp = START_TEMP;
+        var startedAt = null;
+        var elapsed = 0;
+        var timerId = null;
+        var sliding = false;
+        var finished = false;
+        var bubbleTimer = { husband: null, wife: null };
+
+        var el = {
+          count: document.getElementById("count"),
+          temp: document.getElementById("temp"),
+          tempBar: document.getElementById("tempBar"),
+          timer: document.getElementById("timer"),
+          carrier: document.getElementById("carrier"),
+          steam: document.getElementById("steam"),
+          karaageBody: document.getElementById("karaageBody"),
+          coldNote: document.getElementById("coldNote"),
+          husband: document.getElementById("husband"),
+          wife: document.getElementById("wife"),
+          bubbleHusband: document.getElementById("bubbleHusband"),
+          bubbleWife: document.getElementById("bubbleWife"),
+          btnHusband: document.getElementById("btnHusband"),
+          btnWife: document.getElementById("btnWife"),
+          overlay: document.getElementById("overlay"),
+          finalCount: document.getElementById("finalCount"),
+          finalTime: document.getElementById("finalTime"),
+          rankText: document.getElementById("rankText"),
+          shareBtn: document.getElementById("shareBtn"),
+          againBtn: document.getElementById("againBtn")
+        };
+
+        /* ---------- audio ---------- */
+        var audioCtx = null;
+        function ensureAudio() {
+          if (!audioCtx) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) audioCtx = new AC();
+          }
+          if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+          return audioCtx;
+        }
+        function popSound() {
+          var ctx = ensureAudio();
+          if (!ctx) return;
+          var t = ctx.currentTime;
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          var base = 520 + Math.random() * 160;
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(base, t);
+          osc.frequency.exponentialRampToValueAtTime(base * 1.7, t + 0.07);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.12, t + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(t); osc.stop(t + 0.15);
+        }
+        function sadSound() {
+          var ctx = ensureAudio();
+          if (!ctx) return;
+          var notes = [392, 329.6, 261.6];
+          notes.forEach(function (freq, i) {
+            var t = ctx.currentTime + i * 0.22;
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(0.09, t + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(t); osc.stop(t + 0.26);
+          });
+        }
+
+        /* ---------- helpers ---------- */
+        function fmtTime(sec) {
+          var m = Math.floor(sec / 60);
+          var s = Math.floor(sec % 60);
+          return m + ":" + (s < 10 ? "0" : "") + s;
+        }
+        function lerpColor(c1, c2, t) {
+          return c1.map(function (v, i) { return Math.round(v + (c2[i] - v) * t); });
+        }
+        function rgb(c) { return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")"; }
+
+        function render() {
+          el.count.textContent = count;
+          el.temp.textContent = Math.max(0, Math.round(temp));
+          var ratio = Math.max(0, temp / START_TEMP);
+          el.tempBar.style.width = ratio * 100 + "%";
+          el.tempBar.classList.toggle("cold", temp < 25);
+          // steam amount follows temperature
+          el.steam.style.setProperty("--steam-o", String(Math.max(0, Math.min(0.95, ratio * 1.15))));
+          el.steam.style.opacity = temp <= 8 ? "0" : "1";
+          // karaage color dulls as it cools: vivid golden -> greyish brown
+          var dull = 1 - ratio;
+          el.karaageBody.setAttribute("fill", rgb(lerpColor([224, 138, 46], [146, 124, 104], dull)));
+          // cold note
+          var note = "";
+          for (var i = 0; i < COLD_NOTES.length; i++) {
+            if (temp < COLD_NOTES[i].under) note = COLD_NOTES[i].text;
+          }
+          el.coldNote.textContent = note;
+          // worried faces + sweat once the back-and-forth drags on
+          var worried = count >= 8;
+          document.querySelectorAll(".mouth-smile").forEach(function (p) { p.style.display = worried ? "none" : ""; });
+          document.querySelectorAll(".mouth-worry").forEach(function (p) { p.style.display = worried ? "" : "none"; });
+          document.querySelectorAll(".sweat").forEach(function (p) { p.style.display = count >= 12 ? "" : "none"; });
+        }
+
+        function startTimerIfNeeded() {
+          if (startedAt !== null) return;
+          startedAt = Date.now();
+          timerId = setInterval(function () {
+            elapsed += 0.25;
+            el.timer.textContent = fmtTime(elapsed);
+          }, 250);
+        }
+
+        function showBubble(side, text) {
+          var bubble = side === "husband" ? el.bubbleHusband : el.bubbleWife;
+          var person = side === "husband" ? el.husband : el.wife;
+          bubble.textContent = text;
+          bubble.classList.add("show");
+          person.classList.remove("bounce");
+          void person.offsetWidth;
+          person.classList.add("bounce");
+          clearTimeout(bubbleTimer[side]);
+          bubbleTimer[side] = setTimeout(function () { bubble.classList.remove("show"); }, 2100);
+        }
+
+        function lineFor(n) {
+          if (n <= LINES.length) return LINES[n - 1];
+          return LATE_LINES[(n - LINES.length - 1) % LATE_LINES.length];
+        }
+
+        function yield_(from) {
+          if (sliding || finished) return;
+          ensureAudio();
+          startTimerIfNeeded();
+          sliding = true;
+          count++;
+          var drop = 3 + Math.floor(Math.random() * 4); // 3〜6℃
+          temp = Math.max(0, temp - drop);
+          popSound();
+          showBubble(from, lineFor(count));
+          el.carrier.classList.remove("to-wife", "to-husband");
+          void el.carrier.offsetWidth;
+          el.carrier.classList.add(from === "husband" ? "to-wife" : "to-husband");
+          render();
+          setTimeout(function () {
+            sliding = false;
+            if (temp <= 0) finish();
+          }, 480);
+        }
+
+        function rankFor(n) {
+          if (n <= 10) return "称号：ほどよい優しさ";
+          if (n <= 16) return "称号：譲り合いの達人";
+          if (n <= 22) return "称号：遠慮のプロフェッショナル";
+          return "称号：誰も食べない伝説の夫婦";
+        }
+
+        function finish() {
+          finished = true;
+          clearInterval(timerId);
+          el.btnHusband.disabled = true;
+          el.btnWife.disabled = true;
+          sadSound();
+          el.finalCount.textContent = count;
+          el.finalTime.textContent = fmtTime(elapsed);
+          el.rankText.textContent = rankFor(count);
+          var text = "最後の唐揚げを" + count + "回譲り合って冷ましました #最後のからあげ譲り合い選手権";
+          el.shareBtn.href = "https://x.com/intent/post?text=" + encodeURIComponent(text);
+          setTimeout(function () { el.overlay.classList.add("show"); }, 450);
+        }
+
+        function reset() {
+          count = 0;
+          temp = START_TEMP;
+          startedAt = null;
+          elapsed = 0;
+          sliding = false;
+          finished = false;
+          clearInterval(timerId);
+          el.timer.textContent = "0:00";
+          el.carrier.classList.remove("to-wife", "to-husband");
+          el.bubbleHusband.classList.remove("show");
+          el.bubbleWife.classList.remove("show");
+          el.btnHusband.disabled = false;
+          el.btnWife.disabled = false;
+          el.overlay.classList.remove("show");
+          render();
+        }
+
+        el.btnHusband.addEventListener("click", function () { yield_("husband"); });
+        el.btnWife.addEventListener("click", function () { yield_("wife"); });
+        el.againBtn.addEventListener("click", function () { ensureAudio(); reset(); });
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
