@@ -44,6 +44,13 @@ header p{font-size:13px; color:var(--muted);}
 /* ▼ LINEリンクは開設後に差し替え（href を公式アカウントの友だち追加URLにする） ▼ */
 .line-btn{display:inline-block; background:#fff; color:#06A94A; font-weight:800; font-size:15px; padding:12px 28px; border-radius:999px; text-decoration:none;}
 footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; line-height:1.8;}
+.adv{margin:14px 0 4px;}
+.adv summary{list-style:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#E7F3F0; border:1.5px solid var(--teal); border-radius:10px; padding:13px 12px; font-size:14.5px; font-weight:800; color:var(--teal-dark); cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.adv summary::-webkit-details-marker{display:none;}
+.adv summary::after{content:"▼"; font-size:11px; transition:transform .2s;}
+.adv[open] summary::after{transform:rotate(180deg);}
+.adv summary:active{background:#D8ECE8;}
+.adv-note{font-size:12px; color:var(--teal-dark); margin-top:8px; display:none;}
 </style>
 </head>
 <body>
@@ -87,10 +94,32 @@ footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; l
 </div>
 </div>
 
+<details class="adv">
+<summary>＋ くわしく計算する（任意）</summary>
+<div class="card" style="margin-top:10px;">
+<div class="field">
+<label for="feeRate">決済手数料率</label>
+<div class="hint">カード決済などの手数料。売上に対してかかる分を差し引いて計算します。</div>
+<div class="row"><input type="number" id="feeRate" inputmode="decimal" placeholder="例：3.6" min="0" max="100"><span class="unit">%</span></div>
+</div>
+<div class="field">
+<label for="cancelRate">キャンセル・返品率</label>
+<div class="hint">注文のうち、売上にならない割合。</div>
+<div class="row"><input type="number" id="cancelRate" inputmode="decimal" placeholder="例：5" min="0" max="100"><span class="unit">%</span></div>
+</div>
+<div class="field">
+<label for="fixedCost">月の固定費</label>
+<div class="hint">ツール代・人件費など。月の目標件数で割って、1件あたりに按分します（目標件数の入力が必要です）。</div>
+<div class="row"><input type="number" id="fixedCost" inputmode="numeric" placeholder="例：50000" min="0"><span class="unit">円</span></div>
+</div>
+</div>
+</details>
+
 <div class="result-main">
 <div class="label">許容CPA（初回購入ベース）</div>
 <div class="value" id="cpaFirst">―</div>
 <div class="sub">これを超えて獲得すると、初回では赤字になります</div>
+<div class="adv-note" id="advNote">※詳細設定（手数料・キャンセル率・固定費）を反映しています</div>
 </div>
 
 <div class="grid">
@@ -120,7 +149,7 @@ footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; l
 <h2>結果の見方</h2>
 <p><strong>許容CPA</strong>は「この金額までなら広告費を使っても、目標の利益が残る」という上限です。日々の広告の数字がこの範囲に収まっているかを見るのが、自社運用のいちばん基本の判断になります。</p>
 <p>実際のCPAが許容CPAを<strong>少し超える</strong>程度なら、まず広告文やページの改善で下げる余地があります。逆に<strong>大きく超え続けている</strong>場合は、広告の調整だけでは難しいことが多く、単価・粗利・リピートの設計そのものを見直すサインです。</p>
-<p>※このツールの数字は目安です。固定費や手数料は含んでいません。実際の判断は自社の収支に合わせて調整してください。</p>
+<p>※このツールの数字は目安です。「くわしく計算する」を開くと、決済手数料・キャンセル率・固定費まで入れた計算もできます。実際の判断は自社の収支に合わせて調整してください。</p>
 </div>
 
 <div class="line-box">
@@ -145,9 +174,15 @@ const repeat = parseFloat($('repeat').value) || 1;
 const profit = (parseFloat($('profit').value) || 0) / 100;
 const cpc = parseFloat($('cpc').value);
 const orders = parseFloat($('orders').value);
+const fee = (parseFloat($('feeRate').value) || 0) / 100;
+const cancel = (parseFloat($('cancelRate').value) || 0) / 100;
+const fixed = parseFloat($('fixedCost').value) || 0;
+const fixedPer = (fixed > 0 && orders > 0)? fixed / orders: 0;
 
-const grossFirst = price * margin; // 初回粗利
-const grossLtv = price * repeat * margin; // リピート込み粗利
+const effPrice = price * (1 - cancel); // キャンセルを除いた実質単価
+const grossFirst = effPrice * (margin - fee) - fixedPer; // 初回粗利（手数料・固定費按分を差引）
+const grossLtv = effPrice * repeat * (margin - fee) - fixedPer; // リピート込み粗利
+$('advNote').style.display = (fee > 0 || cancel > 0 || fixedPer > 0)? 'block': 'none';
 const cpaFirst = Math.max(grossFirst - price * profit, 0);
 const cpaLtv = Math.max(grossLtv - price * repeat * profit, 0);
 
@@ -165,7 +200,7 @@ $('budgetBox').style.display = 'block';
 $('needBudget').textContent = yen(orders * cpaFirst);
 } else { $('budgetBox').style.display = 'none';}
 }
-['price','margin','repeat','profit','cpc','orders'].forEach(id => $(id).addEventListener('input', calc));
+['price','margin','repeat','profit','cpc','orders','feeRate','cancelRate','fixedCost'].forEach(id => $(id).addEventListener('input', calc));
 calc();
 </script>
 </body>
