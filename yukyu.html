@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>有給タワー</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: linear-gradient(160deg, #274b63 0%, #1d3a4f 100%);
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        height: 100dvh;
+      }
+      button { font-family: inherit; }
+
+      /* ===== ステージ（論理サイズ 540×960） ===== */
+      #stage {
+        position: relative;
+        flex: none;
+        width: 540px;
+        height: 960px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #fdf6e0 0%, #fdeed3 55%, #f7e3c2 100%);
+        transform-origin: center center;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ===== 壁の飾り ===== */
+      .window {
+        position: absolute; left: 26px; top: 74px; width: 118px; height: 132px;
+        background: linear-gradient(180deg, #bfe8ff 0%, #e3f6ff 70%, #fef9d8 100%);
+        border: 7px solid #ffffff; border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(120, 84, 30, .12);
+        z-index: 0;
+      }
+      .window::before, .window::after {
+        content: ""; position: absolute; background: #ffffff;
+      }
+      .window::before { left: 50%; top: 0; width: 6px; height: 100%; margin-left: -3px; }
+      .window::after { left: 0; top: 50%; width: 100%; height: 6px; margin-top: -3px; }
+      .window .sun {
+        position: absolute; right: 12px; top: 10px; width: 26px; height: 26px;
+        background: #ffd94d; border-radius: 50%;
+      }
+      .clock {
+        position: absolute; right: 30px; top: 78px; width: 74px; height: 74px;
+        background: #ffffff; border: 6px solid #ff8a5c; border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(120, 84, 30, .14);
+        z-index: 0;
+      }
+      .clock .hand {
+        position: absolute; left: 50%; bottom: 50%; background: #40536b; border-radius: 3px;
+        transform-origin: 50% 100%;
+      }
+      .clock .h1 { width: 5px; height: 19px; margin-left: -2.5px; transform: rotate(-50deg); }
+      .clock .h2 { width: 4px; height: 27px; margin-left: -2px; transform: rotate(115deg); background: #ff6b5e; }
+      .clock .dot {
+        position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px;
+        background: #40536b; border-radius: 50%;
+      }
+      .poster {
+        position: absolute; right: 34px; top: 176px; width: 92px; padding: 8px 4px 9px;
+        background: #ffffff; border-radius: 6px; text-align: center;
+        box-shadow: 0 4px 10px rgba(120, 84, 30, .12);
+        color: #2b8a7e; font-weight: 800; font-size: 15px; line-height: 1.35;
+        z-index: 0;
+      }
+      .poster small { display: block; color: #93a3b5; font-size: 10px; font-weight: 700; }
+
+      /* ===== ワールド（カメラで上下する層） ===== */
+      #world {
+        position: absolute; left: 0; top: 0; width: 540px; height: 960px;
+        z-index: 1; will-change: transform;
+      }
+      #guide {
+        position: absolute; top: 0; height: 0;
+        background: rgba(43, 179, 163, .10);
+        border-left: 2px dashed rgba(43, 179, 163, .5);
+        border-right: 2px dashed rgba(43, 179, 163, .5);
+        z-index: 0; display: none;
+      }
+      #desk {
+        position: absolute; left: 0; top: 854px; width: 540px; height: 620px;
+        background: linear-gradient(180deg, #d99a63 0, #c9854e 14px, #b57a45 15px, #a96f3e 100%);
+        border-top: 5px solid #eec493;
+        z-index: 1;
+      }
+      #desk::before {
+        content: ""; position: absolute; left: 0; top: 64px; width: 100%; height: 3px;
+        background: rgba(90, 55, 20, .18);
+      }
+      #tray {
+        position: absolute; top: 838px; height: 16px;
+        background: linear-gradient(180deg, #5b7a99, #42597a);
+        border-radius: 5px 5px 3px 3px;
+        box-shadow: 0 3px 6px rgba(60, 40, 10, .25), inset 0 2px 0 rgba(255,255,255,.35);
+        z-index: 2;
+      }
+      #tray::after {
+        content: "受付トレイ"; position: absolute; left: 50%; top: 1px; transform: translateX(-50%);
+        color: #dcebf7; font-size: 10px; font-weight: 700; letter-spacing: .2em; white-space: nowrap;
+      }
+      .mug {
+        position: absolute; left: 462px; top: 812px; width: 34px; height: 42px; z-index: 2;
+        background: #ff8a5c; border-radius: 5px 5px 9px 9px;
+        box-shadow: inset 0 -8px 0 rgba(0,0,0,.08);
+      }
+      .mug::before {
+        content: ""; position: absolute; right: -11px; top: 8px; width: 14px; height: 20px;
+        border: 5px solid #ff8a5c; border-left: none; border-radius: 0 10px 10px 0;
+      }
+      .mug::after {
+        content: ""; position: absolute; left: 4px; top: -5px; width: 26px; height: 7px;
+        background: #6b4226; border-radius: 50%;
+      }
+      .pencil-cup {
+        position: absolute; left: 34px; top: 818px; width: 30px; height: 36px; z-index: 2;
+        background: #2bb3a3; border-radius: 4px 4px 7px 7px;
+      }
+      .pencil-cup::before, .pencil-cup::after {
+        content: ""; position: absolute; bottom: 30px; width: 5px; border-radius: 2px;
+      }
+      .pencil-cup::before { left: 7px; height: 30px; background: #ffd94d; transform: rotate(-9deg); }
+      .pencil-cup::after { right: 7px; height: 34px; background: #ff6b5e; transform: rotate(8deg); }
+
+      /* ===== 紙（有給休暇申請書） ===== */
+      .paper {
+        position: absolute; height: 52px;
+        background: #ffffff;
+        border: 1.5px solid #d9dfea;
+        border-radius: 4px;
+        box-shadow: 0 3px 0 rgba(64, 83, 107, .07), 0 7px 12px rgba(64, 83, 107, .13);
+        overflow: hidden;
+        z-index: 3;
+      }
+      .paper.mover { z-index: 5; box-shadow: 0 4px 0 rgba(64,83,107,.08), 0 12px 18px rgba(64, 83, 107, .20); }
+      .paper .doc {
+        position: absolute; left: 0; top: 0; width: 300px; height: 52px; padding: 5px 10px;
+      }
+      .doc-title {
+        font-size: 16px; font-weight: 800; color: #33475e; letter-spacing: .06em; line-height: 1.2;
+        white-space: nowrap;
+      }
+      .doc .line { height: 3px; background: #d7dfea; border-radius: 2px; }
+      .doc .l1 { width: 196px; margin-top: 5px; }
+      .doc .l2 { width: 148px; margin-top: 4px; }
+      .doc-reason { margin-top: 3px; font-size: 9px; font-weight: 700; color: #9fb0c3; white-space: nowrap; }
+      .stamp {
+        position: absolute; right: 10px; top: 50%; width: 31px; height: 31px; margin-top: -15.5px;
+        border: 2.5px solid rgba(224, 58, 47, .85); border-radius: 50%;
+        color: rgba(224, 58, 47, .9); font-size: 15px; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        transform: rotate(-10deg); background: rgba(255, 255, 255, .3);
+      }
+      .scrap { z-index: 4; }
+
+      /* ===== タップ受け層 ===== */
+      #tapLayer { position: absolute; inset: 0; z-index: 6; }
+
+      /* ===== HUD ===== */
+      #hud {
+        position: absolute; left: 0; top: 10px; width: 100%; text-align: center;
+        z-index: 7; pointer-events: none;
+      }
+      #hud .hud-label { font-size: 15px; font-weight: 800; color: #b3813f; letter-spacing: .3em; margin-left: .3em; }
+      #hudCount {
+        font-weight: 800; color: #33475e; line-height: 1.05;
+        text-shadow: 0 3px 0 #ffffff, 0 6px 14px rgba(120, 84, 30, .18);
+      }
+      #countNum { font-size: 76px; }
+      #hudCount .unit { font-size: 34px; margin-left: 2px; }
+      #hudCount.pop { animation: pop .28s ease; }
+      @keyframes pop { 40% { transform: scale(1.14); } }
+      #bestChip {
+        position: absolute; left: 18px; top: 16px; z-index: 7; pointer-events: none;
+        background: rgba(255,255,255,.85); color: #7c6a4f; font-size: 14px; font-weight: 800;
+        padding: 6px 12px; border-radius: 999px; box-shadow: 0 3px 8px rgba(120,84,30,.12);
+      }
+      #hint {
+        position: absolute; left: 50%; bottom: 128px; transform: translateX(-50%);
+        z-index: 7; pointer-events: none; white-space: nowrap;
+        background: rgba(51, 71, 94, .88); color: #ffffff; font-size: 17px; font-weight: 800;
+        padding: 9px 20px; border-radius: 999px;
+        animation: hintFloat 1.6s ease-in-out infinite;
+        transition: opacity .4s;
+      }
+      @keyframes hintFloat { 50% { transform: translateX(-50%) translateY(-6px); } }
+
+      .popup {
+        position: absolute; z-index: 8; pointer-events: none;
+        transform: translateX(-50%);
+        font-size: 26px; font-weight: 800; color: #ff6b5e;
+        text-shadow: 0 2px 0 #ffffff, 0 4px 10px rgba(120, 84, 30, .2);
+        animation: floatUp .95s ease-out forwards; white-space: nowrap;
+      }
+      .popup.perfect { color: #2b8a7e; }
+      @keyframes floatUp {
+        0% { opacity: 0; margin-top: 6px; }
+        15% { opacity: 1; }
+        100% { opacity: 0; margin-top: -46px; }
+      }
+
+      /* ===== オーバーレイ共通 ===== */
+      .overlay {
+        position: absolute; inset: 0; z-index: 10;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(253, 246, 224, .72);
+        opacity: 1; visibility: visible; transition: opacity .3s, visibility .3s;
+      }
+      .overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+      .card {
+        width: 452px; max-width: calc(100% - 40px);
+        background: #ffffff; border-radius: 26px; text-align: center;
+        padding: 38px 30px 34px;
+        box-shadow: 0 18px 40px rgba(120, 84, 30, .22), inset 0 0 0 3px #ffe9bd;
+      }
+      .mini-paper {
+        width: 190px; height: 52px; margin: 0 auto 16px; position: relative;
+        background: #ffffff; border: 1.5px solid #d9dfea; border-radius: 4px;
+        box-shadow: 0 6px 12px rgba(64, 83, 107, .16);
+        transform: rotate(-2.5deg); overflow: hidden; text-align: left;
+      }
+      .mini-paper .doc { position: absolute; left: 0; top: 0; width: 300px; height: 52px; padding: 5px 10px; }
+      .game-title { font-size: 62px; font-weight: 800; color: #33475e; line-height: 1.1; margin: 0; }
+      .game-title .accent { color: #ff6b5e; }
+      .game-sub { margin: 10px 0 0; font-size: 19px; font-weight: 800; color: #2b8a7e; }
+      .howto {
+        margin: 20px auto 4px; text-align: left; display: inline-block;
+        font-size: 16.5px; font-weight: 700; color: #5a6b80; line-height: 1.85;
+      }
+      .howto b { color: #ff6b5e; }
+      .big-btn {
+        margin-top: 24px; border: none; cursor: pointer;
+        background: #ff6b5e; color: #ffffff;
+        font-size: 25px; font-weight: 800; letter-spacing: .04em;
+        padding: 17px 40px; min-height: 60px; border-radius: 999px;
+        box-shadow: 0 6px 0 #d94f43, 0 12px 22px rgba(217, 79, 67, .35);
+        transition: transform .08s, box-shadow .08s;
+      }
+      .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d94f43, 0 6px 12px rgba(217, 79, 67, .3); }
+
+      .result-label { font-size: 17px; font-weight: 800; color: #b3813f; letter-spacing: .35em; margin-left: .35em; }
+      .result-num { font-weight: 800; color: #33475e; line-height: 1.05; margin-top: 4px; }
+      .result-num .num { font-size: 104px; }
+      .result-num .unit { font-size: 42px; margin-left: 2px; }
+      .lost-text { margin: 12px 0 0; font-size: 27px; font-weight: 800; color: #e0492f; }
+      .result-comment { margin: 10px 0 0; font-size: 16.5px; font-weight: 700; color: #5a6b80; }
+      .result-best { margin: 14px 0 0; font-size: 15px; font-weight: 800; color: #93a3b5; }
+
+      @media (prefers-reduced-motion: reduce) {
+        #hint { animation: none; }
+        .popup { animation-duration: .01s; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <!-- 壁の飾り -->
+      <div class="window"><div class="sun"></div></div>
+      <div class="clock"><div class="hand h1"></div><div class="hand h2"></div><div class="dot"></div></div>
+      <div class="poster">有給を<br />取ろう<small>働き方改革</small></div>
+
+      <!-- カメラで動くワールド -->
+      <div id="world">
+        <div id="guide"></div>
+        <div id="desk"></div>
+        <div class="mug"></div>
+        <div class="pencil-cup"></div>
+        <div id="tray"></div>
+        <div id="papers"></div>
+      </div>
+
+      <div id="tapLayer"></div>
+
+      <!-- HUD -->
+      <div id="bestChip">ベスト <span id="bestNum">0</span>連休</div>
+      <div id="hud">
+        <div class="hud-label">現在の連休</div>
+        <div id="hudCount"><span id="countNum">0</span><span class="unit">連休</span></div>
+      </div>
+      <div id="hint">タップで申請書を落とす！</div>
+
+      <!-- スタート画面 -->
+      <div id="startScreen" class="overlay">
+        <div class="card">
+          <div class="mini-paper">
+            <div class="doc">
+              <div class="doc-title">有給休暇申請書</div>
+              <div class="stamp">休</div>
+              <div class="line l1"></div>
+              <div class="line l2"></div>
+              <div class="doc-reason">理由：リフレッシュのため</div>
+            </div>
+          </div>
+          <h1 class="game-title">有給<span class="accent">タワー</span></h1>
+          <p class="game-sub">申請書を積んで、連休を伸ばそう</p>
+          <div class="howto">
+            ・左右に動く申請書を、<b>タップ</b>で落とす<br />
+            ・1枚積むごとに連休が<b>1日</b>伸びる<br />
+            ・ずれた分だけ紙は細くなるよ<br />
+            ・下の紙から外れたら連休はおしまい
+          </div>
+          <br />
+          <button id="startBtn" class="big-btn" type="button">タップではじめる</button>
+        </div>
+      </div>
+
+      <!-- 結果画面 -->
+      <div id="resultScreen" class="overlay hidden">
+        <div class="card">
+          <div class="result-label">最終記録</div>
+          <div class="result-num"><span class="num" id="resultNum">0</span><span class="unit">連休</span></div>
+          <p class="lost-text" id="lostText">0連休を失いました</p>
+          <p class="result-comment" id="resultComment">休みは儚い…</p>
+          <p class="result-best" id="resultBest">ベスト記録：0連休</p>
+          <button id="retryBtn" class="big-btn" type="button">もう一回</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ===== 定数（論理ピクセル：540×960） ===== */
+        var FIELD_W = 540;
+        var PAPER_H = 52;
+        var BASE_X = 120;          // 土台（受付トレイ）の左端
+        var BASE_W = 300;          // 土台の幅＝最初の紙の幅
+        var BASE_TOP = 838;        // 土台の上面（ワールド座標）
+        var SPAWN_Y = 212;         // 移動中の紙の画面上のY
+        var TOWER_TOP_SCREEN = 622; // カメラが保つタワーのてっぺんの画面Y
+        var FALL_SPEED = 1550;     // 落下速度 px/s
+        var DOC_W = 300;           // 申請書の中身の固定幅（はみ出しは切れる）
+
+        /* ===== 要素 ===== */
+        var stage = document.getElementById("stage");
+        var world = document.getElementById("world");
+        var papersEl = document.getElementById("papers");
+        var guide = document.getElementById("guide");
+        var tray = document.getElementById("tray");
+        var tapLayer = document.getElementById("tapLayer");
+        var hudCount = document.getElementById("hudCount");
+        var countNum = document.getElementById("countNum");
+        var bestNum = document.getElementById("bestNum");
+        var hint = document.getElementById("hint");
+        var startScreen = document.getElementById("startScreen");
+        var resultScreen = document.getElementById("resultScreen");
+        var resultNum = document.getElementById("resultNum");
+        var lostText = document.getElementById("lostText");
+        var resultComment = document.getElementById("resultComment");
+        var resultBest = document.getElementById("resultBest");
+
+        tray.style.left = BASE_X + "px";
+        tray.style.width = BASE_W + "px";
+
+        /* ===== 状態 ===== */
+        var S = {
+          phase: "ready", // ready | playing | falling | over
+          count: 0,
+          best: 0,
+          top: { x: BASE_X, w: BASE_W },
+          mover: null, // {x, w, dir, el, doc, docShift, worldY}
+          camY: 0,
+          camTarget: 0,
+          fall: null, // {miss, landY, newX, newW, perfect}
+          scraps: []
+        };
+
+        function speed() {
+          var w = S.mover ? S.mover.w : BASE_W;
+          var v = 168 + S.count * 10 + (BASE_W - w) * 0.6;
+          return Math.min(v, 560);
+        }
+
+        /* ===== 紙の生成 ===== */
+        function makePaperEl(w) {
+          var el = document.createElement("div");
+          el.className = "paper";
+          el.style.width = w + "px";
+          var doc = document.createElement("div");
+          doc.className = "doc";
+          doc.innerHTML =
+            '<div class="doc-title">有給休暇申請書</div>' +
+            '<div class="stamp">休</div>' +
+            '<div class="line l1"></div>' +
+            '<div class="line l2"></div>' +
+            '<div class="doc-reason">理由：リフレッシュのため</div>';
+          el.appendChild(doc);
+          return el;
+        }
+
+        function spawnMover() {
+          var w = S.top.w;
+          var el = makePaperEl(w);
+          el.classList.add("mover");
+          papersEl.appendChild(el);
+          S.mover = {
+            x: 0, w: w, dir: 1,
+            el: el, doc: el.firstChild, docShift: 0,
+            worldY: SPAWN_Y - S.camY
+          };
+          positionMover();
+        }
+
+        function positionMover() {
+          var m = S.mover;
+          if (!m) return;
+          m.el.style.left = m.x + "px";
+          m.el.style.top = m.worldY + "px";
+        }
+
+        function spawnScrap(x, w, worldY, docShift) {
+          if (w < 2) return;
+          var el = makePaperEl(w);
+          el.classList.add("scrap");
+          el.style.left = x + "px";
+          el.style.top = worldY + "px";
+          el.firstChild.style.transform = "translateX(" + docShift + "px)";
+          papersEl.appendChild(el);
+          S.scraps.push({
+            el: el, y: worldY, vy: 260,
+            rot: 0, vr: (x + w / 2 < FIELD_W / 2 ? -1 : 1) * (40 + Math.random() * 50)
+          });
+        }
+
+        /* ===== 音（小さなシンセ音） ===== */
+        var actx = null;
+        function ensureAudio() {
+          try {
+            if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+            if (actx.state === "suspended") actx.resume();
+          } catch (e) { /* 音が出なくてもゲームは続行 */ }
+        }
+        function tone(freq, dur, type, delay, vol, slideTo) {
+          if (!actx) return;
+          try {
+            var t = actx.currentTime + (delay || 0);
+            var o = actx.createOscillator();
+            var g = actx.createGain();
+            o.type = type || "square";
+            o.frequency.setValueAtTime(freq, t);
+            if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+            g.gain.setValueAtTime(vol || 0.045, t);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            o.connect(g); g.connect(actx.destination);
+            o.start(t); o.stop(t + dur + 0.02);
+          } catch (e) { /* ignore */ }
+        }
+        function sndLand() { tone(520, 0.07, "square", 0, 0.05); tone(784, 0.1, "square", 0.055, 0.05); }
+        function sndPerfect() { tone(659, 0.08, "square", 0, 0.05); tone(880, 0.08, "square", 0.07, 0.05); tone(1046, 0.13, "square", 0.14, 0.05); }
+        function sndMiss() { tone(320, 0.5, "sawtooth", 0, 0.04, 82); }
+
+        /* ===== 表示更新 ===== */
+        function updateHud(pop) {
+          countNum.textContent = S.count;
+          bestNum.textContent = S.best;
+          if (pop) {
+            hudCount.classList.remove("pop");
+            void hudCount.offsetWidth;
+            hudCount.classList.add("pop");
+          }
+        }
+
+        function showPopup(text, perfect) {
+          var el = document.createElement("div");
+          el.className = "popup" + (perfect ? " perfect" : "");
+          el.textContent = text;
+          el.style.left = (S.top.x + S.top.w / 2) + "px";
+          el.style.top = (BASE_TOP - S.count * PAPER_H + S.camY - 44) + "px";
+          stage.appendChild(el);
+          el.addEventListener("animationend", function () { el.remove(); });
+          setTimeout(function () { if (el.parentNode) el.remove(); }, 1200);
+        }
+
+        /* ===== ゲーム進行 ===== */
+        function drop() {
+          if (S.phase !== "playing" || !S.mover) return;
+          ensureAudio();
+          hint.style.opacity = "0";
+          var m = S.mover, t = S.top;
+          var overlapL = Math.max(m.x, t.x);
+          var overlapR = Math.min(m.x + m.w, t.x + t.w);
+          var ow = overlapR - overlapL;
+          S.phase = "falling";
+          guide.style.display = "none";
+          if (ow <= 0.5) {
+            S.fall = { miss: true };
+            sndMiss();
+          } else if (Math.abs(m.x - t.x) <= 6) {
+            S.fall = {
+              miss: false, perfect: true,
+              landY: BASE_TOP - (S.count + 1) * PAPER_H,
+              newX: t.x, newW: t.w
+            };
+          } else {
+            S.fall = {
+              miss: false, perfect: false,
+              landY: BASE_TOP - (S.count + 1) * PAPER_H,
+              newX: overlapL, newW: ow
+            };
+          }
+        }
+
+        function land() {
+          var f = S.fall, m = S.mover;
+          m.worldY = f.landY;
+
+          if (!f.perfect) {
+            var cut = m.w - f.newW;
+            if (f.newX > m.x) {
+              // 左側がはみ出して切れた
+              spawnScrap(m.x, cut, f.landY, m.docShift);
+              m.docShift -= (f.newX - m.x);
+            } else {
+              // 右側がはみ出して切れた
+              var sx = f.newX + f.newW;
+              spawnScrap(sx, cut, f.landY, m.docShift - (sx - m.x));
+            }
+            m.doc.style.transform = "translateX(" + m.docShift + "px)";
+          }
+
+          m.x = f.newX;
+          m.w = f.newW;
+          m.el.style.left = m.x + "px";
+          m.el.style.top = m.worldY + "px";
+          m.el.style.width = m.w + "px";
+          m.el.classList.remove("mover");
+          m.el.classList.add("stacked");
+
+          S.top = { x: f.newX, w: f.newW };
+          S.count += 1;
+          if (S.count > S.best) S.best = S.count;
+          S.camTarget = Math.max(0, S.count * PAPER_H - (BASE_TOP - TOWER_TOP_SCREEN));
+          S.fall = null;
+          S.phase = "playing";
+
+          updateHud(true);
+          showPopup(f.perfect ? "ピッタリ！ +1日" : "+1日", f.perfect);
+          if (f.perfect) sndPerfect(); else sndLand();
+          spawnMover();
+        }
+
+        function gameOver() {
+          S.phase = "over";
+          S.fall = null;
+          if (S.mover) { S.mover.el.remove(); }
+          resultNum.textContent = S.count;
+          lostText.textContent = S.count + "連休を失いました";
+          resultComment.textContent =
+            S.count >= 20 ? "伝説の長期連休でした。社会復帰が心配です。" :
+            S.count >= 10 ? "なかなかの長期休暇でしたね。" :
+            S.count >= 5 ? "いい休みでした。また積みましょう。" :
+            S.count >= 1 ? "休みは儚い…。次はもっと積めるはず。" :
+                           "1枚目から落としましたね…。度胸は認めます。";
+          resultBest.textContent = "ベスト記録：" + S.best + "連休";
+          resultScreen.classList.remove("hidden");
+          updateHud(false);
+        }
+
+        function resetGame() {
+          var olds = papersEl.querySelectorAll(".paper");
+          for (var i = 0; i < olds.length; i++) olds[i].remove();
+          S.scraps = [];
+          S.count = 0;
+          S.top = { x: BASE_X, w: BASE_W };
+          S.camY = 0;
+          S.camTarget = 0;
+          S.fall = null;
+          world.style.transform = "translateY(0px)";
+          updateHud(false);
+          spawnMover();
+        }
+
+        function startGame() {
+          ensureAudio();
+          startScreen.classList.add("hidden");
+          resultScreen.classList.add("hidden");
+          hint.style.opacity = "1";
+          resetGame();
+          S.phase = "playing";
+        }
+
+        /* ===== メインループ ===== */
+        var last = performance.now();
+        function frame(now) {
+          var dt = Math.min(0.05, (now - last) / 1000);
+          last = now;
+
+          // カメラ
+          if (Math.abs(S.camTarget - S.camY) > 0.1) {
+            S.camY += (S.camTarget - S.camY) * Math.min(1, dt * 5.5);
+            world.style.transform = "translateY(" + S.camY + "px)";
+          }
+
+          var m = S.mover;
+          if (m) {
+            if (S.phase === "playing" || S.phase === "ready") {
+              m.x += m.dir * speed() * dt;
+              if (m.x <= 0) { m.x = 0; m.dir = 1; }
+              else if (m.x >= FIELD_W - m.w) { m.x = FIELD_W - m.w; m.dir = -1; }
+              m.worldY = SPAWN_Y - S.camY;
+              positionMover();
+              // 落下ガイド
+              var towerTopY = BASE_TOP - S.count * PAPER_H;
+              var gh = towerTopY - (m.worldY + PAPER_H);
+              if (S.phase === "playing" && gh > 0) {
+                guide.style.display = "block";
+                guide.style.left = m.x + "px";
+                guide.style.width = m.w + "px";
+                guide.style.top = (m.worldY + PAPER_H) + "px";
+                guide.style.height = gh + "px";
+              } else {
+                guide.style.display = "none";
+              }
+            } else if (S.phase === "falling" && S.fall) {
+              m.worldY += FALL_SPEED * dt;
+              if (S.fall.miss) {
+                var p = Math.min(1, (m.worldY + S.camY - SPAWN_Y) / 500);
+                m.el.style.transform = "rotate(" + (p * 14) + "deg)";
+                positionMover();
+                if (m.worldY + S.camY > 1090) gameOver();
+              } else {
+                positionMover();
+                if (m.worldY >= S.fall.landY) land();
+              }
+            }
+          }
+
+          // 切り落とされた紙片
+          for (var i = S.scraps.length - 1; i >= 0; i--) {
+            var sc = S.scraps[i];
+            sc.vy += 2600 * dt;
+            sc.y += sc.vy * dt;
+            sc.rot += sc.vr * dt;
+            sc.el.style.top = sc.y + "px";
+            sc.el.style.transform = "rotate(" + sc.rot + "deg)";
+            sc.el.style.opacity = Math.max(0, 1 - Math.max(0, sc.y + S.camY - 760) / 260);
+            if (sc.y + S.camY > 1080) { sc.el.remove(); S.scraps.splice(i, 1); }
+          }
+
+          requestAnimationFrame(frame);
+        }
+
+        /* ===== 入力 ===== */
+        tapLayer.addEventListener("pointerdown", function (e) {
+          e.preventDefault();
+          if (S.phase === "playing") drop();
+        });
+        document.getElementById("startBtn").addEventListener("click", startGame);
+        document.getElementById("retryBtn").addEventListener("click", startGame);
+        window.addEventListener("keydown", function (e) {
+          if (e.code === "Space" || e.code === "Enter") {
+            e.preventDefault();
+            if (S.phase === "playing") drop();
+            else if (S.phase === "ready" || S.phase === "over") startGame();
+          }
+        });
+        stage.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+        /* ===== ステージのフィット ===== */
+        function fit() {
+          var s = Math.min(window.innerWidth / FIELD_W, window.innerHeight / 960);
+          stage.style.transform = "scale(" + s + ")";
+        }
+        window.addEventListener("resize", fit);
+        fit();
+
+        /* ===== テスト用状態API ===== */
+        window.__yukyuState = function () {
+          return {
+            phase: S.phase,
+            moverX: S.mover ? Math.round(S.mover.x) : 0,
+            moverW: S.mover ? Math.round(S.mover.w) : 0,
+            topX: Math.round(S.top.x),
+            topW: Math.round(S.top.w),
+            count: S.count
+          };
+        };
+
+        /* ===== 初期化 ===== */
+        resetGame();
+        S.phase = "ready";
+        requestAnimationFrame(frame);
+      })();
+    </script>
+  </body>
+</html>
