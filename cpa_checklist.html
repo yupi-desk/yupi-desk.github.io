@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>許容CPA 結果の見方チェックリスト（無料版）｜ハシ（自社運用のための広告ノート）</title>
+<meta name="description" content="許容CPA計算ツールの結果が出たあと、次に何をすればいいかをまとめた無料チェックリスト。数字の読み方と初動の判断基準が1枚に。">
+<style>
+:root{
+  --teal:#0F766E; --teal-dark:#115E59; --ink:#1C1A17; --muted:#6B7280;
+  --bg:#FAF7F0; --card:#FFFFFF; --line:#E7E0D2; --accent:#B3402A;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); line-height:1.7;}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px 48px;}
+.hero{text-align:center; padding:32px 8px 8px;}
+.hero img.icon{width:88px; height:88px; border-radius:50%; border:3px solid #fff; box-shadow:0 4px 16px rgba(0,0,0,.12); object-fit:cover;}
+.hero .brand{font-size:12.5px; font-weight:700; color:var(--teal); letter-spacing:.08em; margin-top:10px;}
+.hero h1{font-size:24px; font-weight:900; line-height:1.5; margin:10px 0 8px;}
+.hero h1 .hl{color:var(--teal); border-bottom:4px solid #FDE68A; padding:0 2px;}
+.hero p.lead{font-size:14px; color:#374151; line-height:1.8;}
+section{margin-top:32px;}
+.sec-title{font-size:18px; font-weight:900; text-align:center; margin-bottom:14px;}
+.sec-title::after{content:""; display:block; width:44px; height:3px; background:var(--teal); border-radius:2px; margin:8px auto 0;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.fill{display:grid; gap:10px;}
+.fill .row{display:flex; align-items:baseline; gap:8px; border-bottom:1px dashed var(--line); padding:8px 0; font-size:14.5px;}
+.fill .row:last-child{border-bottom:none;}
+.fill .k{font-weight:800; flex:none;}
+.fill .blank{flex:1; border-bottom:1.5px solid #9CA3AF; min-height:1.4em; text-align:right; font-size:16px; font-weight:800;}
+.fill .unit{font-size:13px; color:#4B5563; font-weight:700;}
+.fill .hint{font-size:12.5px; color:var(--muted); line-height:1.7; margin-top:4px;}
+.checks{list-style:none;}
+.checks li{padding:12px 0 12px 4px; border-bottom:1px dashed var(--line); font-size:14.5px;}
+.checks li:last-child{border-bottom:none;}
+.checks label{display:flex; gap:12px; align-items:flex-start; cursor:pointer;}
+.checks input{flex:none; width:20px; height:20px; margin-top:3px; accent-color:var(--teal);}
+.checks .t{font-weight:800;}
+.checks .d{font-size:13px; color:#4B5563; margin-top:2px; line-height:1.8;}
+.rule{border-left:4px solid var(--teal); background:#F0FDF9; border-radius:0 10px 10px 0; padding:12px 14px; margin-top:12px; font-size:13.5px; line-height:1.8;}
+.rule strong{color:var(--teal-dark);}
+.rule.warn{border-left-color:var(--accent); background:#FEF3F2;}
+.rule.warn strong{color:var(--accent);}
+.next{background:#06C755; border-radius:14px; padding:24px 18px; text-align:center; color:#fff; margin-top:32px;}
+.next .t{font-size:16px; font-weight:900; margin-bottom:8px; line-height:1.6;}
+.next p{font-size:12.5px; margin-bottom:16px; line-height:1.7;}
+.next .line-btn{display:inline-block; background:#fff; color:#06A94A; font-weight:800; font-size:15.5px; padding:13px 30px; border-radius:999px; text-decoration:none;}
+footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; line-height:1.8;}
+@media print{
+  body{background:#fff;}
+  .wrap{max-width:100%; padding:0;}
+  .card{box-shadow:none;}
+  .next{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+<img class="icon" src="cpa_icon.webp" alt="メガネ柴犬先生">
+<div class="brand">ハシ｜自社運用のための広告ノート</div>
+<h1>許容CPA <span class="hl">結果の見方チェックリスト</span>（無料版）</h1>
+<p class="lead">計算ツールで出た数字をここに書き写して、<br>「続ける／直す／止める」を数字で判断するための1枚です。</p>
+</div>
+
+<section>
+<div class="sec-title">1．まず数字を書き写す</div>
+<div class="card fill">
+<div class="row"><span class="k">許容CPA（初回）</span><span class="blank">&nbsp;</span><span class="unit">円</span></div>
+<div class="row"><span class="k">許容CPA（リピート込み）</span><span class="blank">&nbsp;</span><span class="unit">円</span></div>
+<div class="row"><span class="k">損益分岐CPA</span><span class="blank">&nbsp;</span><span class="unit">円</span></div>
+<div class="row"><span class="k">いまの実際のCPA</span><span class="blank">&nbsp;</span><span class="unit">円</span></div>
+<div class="row"><span class="k">必要なCVRの目安</span><span class="blank">&nbsp;</span><span class="unit">％以上</span></div>
+<div class="row"><span class="k">必要な広告費の目安（月）</span><span class="blank">&nbsp;</span><span class="unit">円</span></div>
+<p class="hint">※ 実際のCPAは、媒体の管理画面で「広告費 ÷ 獲得件数」を確認してください。1日だけの数字ではなく、直近3〜7日で見ます。</p>
+</div>
+</section>
+
+<section>
+<div class="sec-title">2．結果の読み方 — 4つの判断</div>
+<div class="card">
+<ul class="checks">
+<li><label><input type="checkbox"><span><span class="t">実際のCPA ＜ 許容CPA（初回）なら、そのまま続けてOK</span><div class="d">目標の利益が残る範囲で獲得できています。まずはこの状態をキープすることが最優先です。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">実際のCPAが許容CPAを少し超える程度なら、広告文・ページの改善から</span><div class="d">訴求・ターゲット・ランディングページの見直しで下げられる余地があります。いきなり止める必要はありません。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">実際のCPAが損益分岐CPAを超えたら要注意</span><div class="d">利益ゼロのラインを超えています。売れるほど赤字が広がる状態なので、配信の見直しを先延ばしにしないこと。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">許容CPAを大きく超え続けているなら、設計そのものを見直すサイン</span><div class="d">広告の調整だけでは難しいことが多い状態です。単価・粗利・リピートの設計（そもそもの商材の作り）から見直します。</div></span></label></li>
+</ul>
+<div class="rule"><strong>リピート込みの許容CPAの使い方：</strong>リピートが実際にある商材なら、初回の赤字を許容できるのはこの範囲までです。ただし初回のキャッシュはマイナスになります。資金に余裕がないうちは、<strong>初回ベースの許容CPAで運用するのが安全</strong>です。</div>
+</div>
+</section>
+
+<section>
+<div class="sec-title">3．今日やること</div>
+<div class="card">
+<ul class="checks">
+<li><label><input type="checkbox"><span><span class="t">上の「1」に6つの数字を書き写す</span><div class="d">ツールで計算した数字と、管理画面の実際のCPAを並べるだけで、判断の基準ができます。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">許容CPA（初回）をメモ帳・スプレッドシートに書いておく</span><div class="d">毎日の判断はこの1つの数字と比べるだけ。「なんとなく」で止める・続けるをやめます。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">必要なCVRと、いまのCVRを見比べる</span><div class="d">必要なCVRに届いていない場合、直すのは「広告文」か「ページ」か「ターゲット」かのどれかです。</div></span></label></li>
+</ul>
+</div>
+</section>
+
+<section>
+<div class="sec-title">4．1週間で見ること</div>
+<div class="card">
+<ul class="checks">
+<li><label><input type="checkbox"><span><span class="t">毎日同じ時間にCPAを確認する（1日だけの数字で判断しない）</span><div class="d">曜日や時間帯でブレるため、直近3〜7日の平均で見ます。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">3日連続で許容CPAを超えたら、広告文・ページの改善に着手する</span><div class="d">訴求を変える／ターゲットを絞る／ページの最初の画面を直す、のいずれか1つから。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">1週間超え続けるなら、単価・粗利・リピートの設計を見直す</span><div class="d">広告の中だけでは解決しないサインです。値付けやリピートの仕組みから見直します。</div></span></label></li>
+</ul>
+</div>
+</section>
+
+<section>
+<div class="sec-title">5．落とし穴チェック</div>
+<div class="card">
+<ul class="checks">
+<li><label><input type="checkbox"><span><span class="t">決済手数料・キャンセル率・固定費を入れ忘れていないか</span><div class="d">ツールの「くわしく計算する」を開くと反映できます。入れ忘れると許容CPAを高く見積もりすぎます。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">粗利率があいまいなまま計算していないか</span><div class="d">分からなければまず50%で試し、原価や送料などの変動費が分かったら数字を入れ替えます。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">リピート込みの数字だけを見て、初回の赤字を放置していないか</span><div class="d">リピートは「これから」の売上です。初回ベースも必ず並べて確認します。</div></span></label></li>
+<li><label><input type="checkbox"><span><span class="t">クリック単価だけを見て判断していないか</span><div class="d">クリックが安くても、成約しなければCPAは下がりません。最後は必ずCPAで判断します。</div></span></label></li>
+</ul>
+<div class="rule warn"><strong>このチェックリストの数字は目安です。</strong>実際の判断は自社の収支に合わせて調整してください。成果を保証するものではありません。</div>
+</div>
+</section>
+
+<div class="next">
+<div class="t">数字の読み解きはLINEでも少しずつお届けします</div>
+<p>広告の始め方から数字の見方まで、代理店に頼らず自社で運用したい方向けの発信です。</p>
+<a class="line-btn" href="https://lin.ee/q8prNgI" target="_blank" rel="noopener">LINEで受け取る</a>
+</div>
+
+<footer>
+ハシ｜自社運用のための広告ノート（X：@hashinoriburogu）<br>
+本チェックリストは広告運用の判断の目安を提供するもので、成果を保証するものではありません。
+</footer>
+
+</div>
+</body>
+</html>
