@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>許容CPA計算ツール｜1件の獲得にいくらまで使える？</title>
+<meta name="description" content="客単価・粗利率・リピート回数から、広告で1件獲得に使える上限（許容CPA）と損益分岐CPAを計算する無料ツール。自社運用の広告の判断基準づくりに。">
+<style>
+:root{
+--bg:#FAF6EF; --ink:#1C1A17; --teal:#0F766E; --teal-dark:#115E59;
+--coral:#E0654A; --card:#FFFFFF; --line:#E5DCCB; --muted:#6B655C;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--bg); color:var(--ink); font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.7; padding:20px 14px 48px;}
+.wrap{max-width:640px; margin:0 auto;}
+header{text-align:center; margin-bottom:22px;}
+header.brand{font-size:12px; letter-spacing:.12em; color:var(--teal-dark); font-weight:700;}
+header h1{font-size:24px; line-height:1.4; margin:8px 0 6px;}
+header p{font-size:13px; color:var(--muted);}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; margin-bottom:16px;}
+.card h2{font-size:15px; margin-bottom:14px; color:var(--teal-dark);}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:13px; font-weight:700; margin-bottom:4px;}
+.field.hint{font-size:11px; color:var(--muted); margin-bottom:6px;}
+.field.row{display:flex; align-items:center; gap:8px;}
+.field input{flex:1; font-size:17px; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; background:#FFFDF8; width:100%;}
+.field input:focus{outline:none; border-color:var(--teal);}
+.field.unit{font-size:13px; color:var(--muted); white-space:nowrap;}
+.result-main{background:var(--teal); color:#fff; border-radius:14px; padding:22px 18px; text-align:center; margin-bottom:16px;}
+.result-main.label{font-size:13px; opacity:.9;}
+.result-main.value{font-size:40px; font-weight:800; line-height:1.2;}
+.result-main.sub{font-size:12px; opacity:.9; margin-top:4px;}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+.mini{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px;}
+.mini.label{font-size:11px; color:var(--muted);}
+.mini.value{font-size:21px; font-weight:800; color:var(--teal-dark);}
+.mini.note{font-size:11px; color:var(--muted); line-height:1.5;}
+.explain{font-size:13px;}
+.explain p{margin-bottom:10px;}
+.explain strong{color:var(--teal-dark);}
+.line-box{background:#06C755; border-radius:14px; padding:20px 18px; text-align:center; color:#fff;}
+.line-box.t{font-size:16px; font-weight:800; margin-bottom:6px;}
+.line-box p{font-size:12.5px; margin-bottom:14px; line-height:1.6;}
+/* ▼ LINEリンクは開設後に差し替え（href を公式アカウントの友だち追加URLにする） ▼ */
+.line-btn{display:inline-block; background:#fff; color:#06A94A; font-weight:800; font-size:15px; padding:12px 28px; border-radius:999px; text-decoration:none;}
+footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="brand">ハシ｜自社運用のための広告ノート</div>
+<h1>許容CPA計算ツール</h1>
+<p>1件の獲得に、広告費はいくらまで使える？<br>客単価と粗利から「上限の目安」を出します。</p>
+</header>
+
+<div class="card">
+<h2>あなたの数字を入れてください</h2>
+<div class="field">
+<label for="price">客単価（1件あたりの売上）</label>
+<div class="row"><input type="number" id="price" inputmode="numeric" value="10000" min="0"><span class="unit">円</span></div>
+</div>
+<div class="field">
+<label for="margin">粗利率</label>
+<div class="hint">売上から原価・変動費を引いた残りの割合。分からなければ、まず50%で試してみてください。</div>
+<div class="row"><input type="number" id="margin" inputmode="numeric" value="50" min="0" max="100"><span class="unit">%</span></div>
+</div>
+<div class="field">
+<label for="repeat">平均購入回数（リピート含む）</label>
+<div class="hint">1人のお客さんが合計で何回買うか。リピートがない商材は「1」のままでOK。</div>
+<div class="row"><input type="number" id="repeat" inputmode="decimal" value="1" min="1" step="0.1"><span class="unit">回</span></div>
+</div>
+<div class="field">
+<label for="profit">手元に残したい利益率（売上のうち）</label>
+<div class="hint">広告費を引いたあと、売上に対してどれだけ利益を残したいか。</div>
+<div class="row"><input type="number" id="profit" inputmode="numeric" value="10" min="0" max="100"><span class="unit">%</span></div>
+</div>
+<div class="field">
+<label for="cpc">想定クリック単価（任意）</label>
+<div class="hint">分かれば、必要な成約率（CVR）の目安も出します。</div>
+<div class="row"><input type="number" id="cpc" inputmode="numeric" placeholder="例：100" min="0"><span class="unit">円</span></div>
+</div>
+<div class="field">
+<label for="orders">月の目標件数（任意）</label>
+<div class="hint">入れると、その件数を取るのに必要な広告費の目安も出します。</div>
+<div class="row"><input type="number" id="orders" inputmode="numeric" placeholder="例：30" min="0"><span class="unit">件</span></div>
+</div>
+</div>
+
+<div class="result-main">
+<div class="label">許容CPA（初回購入ベース）</div>
+<div class="value" id="cpaFirst">―</div>
+<div class="sub">これを超えて獲得すると、初回では赤字になります</div>
+</div>
+
+<div class="grid">
+<div class="mini">
+<div class="label">許容CPA（リピート込み）</div>
+<div class="value" id="cpaLtv">―</div>
+<div class="note">リピートまで見込む場合の上限。初回赤字を許容できるのはこの範囲まで。</div>
+</div>
+<div class="mini">
+<div class="label">損益分岐CPA（初回）</div>
+<div class="value" id="cpaBreak">―</div>
+<div class="note">利益ゼロのライン。粗利がそのまま広告費になる計算です。</div>
+</div>
+<div class="mini" id="cvrBox" style="display:none;">
+<div class="label">必要なCVRの目安</div>
+<div class="value" id="needCvr">―</div>
+<div class="note">想定クリック単価で許容CPAに収めるために必要な成約率。</div>
+</div>
+<div class="mini" id="budgetBox" style="display:none;">
+<div class="label">必要な広告費の目安（月）</div>
+<div class="value" id="needBudget">―</div>
+<div class="note">目標件数 × 許容CPA（初回ベース）で計算しています。</div>
+</div>
+</div>
+
+<div class="card explain">
+<h2>結果の見方</h2>
+<p><strong>許容CPA</strong>は「この金額までなら広告費を使っても、目標の利益が残る」という上限です。日々の広告の数字がこの範囲に収まっているかを見るのが、自社運用のいちばん基本の判断になります。</p>
+<p>実際のCPAが許容CPAを<strong>少し超える</strong>程度なら、まず広告文やページの改善で下げる余地があります。逆に<strong>大きく超え続けている</strong>場合は、広告の調整だけでは難しいことが多く、単価・粗利・リピートの設計そのものを見直すサインです。</p>
+<p>※このツールの数字は目安です。固定費や手数料は含んでいません。実際の判断は自社の収支に合わせて調整してください。</p>
+</div>
+
+<div class="line-box">
+<div class="t">結果の見方チェックリスト（無料版）をLINEでお渡しします</div>
+<p>「許容CPAが出たあと、次に何をすればいいか」をまとめたチェックリストです。<br>あわせて、広告の数字の読み解きも少しずつお届けします。</p>
+<a class="line-btn" id="lineBtn" href="https://lin.ee/q8prNgI" target="_blank" rel="noopener">LINEで受け取る</a>
+</div>
+
+<footer>
+ハシ｜自社運用のための広告ノート（X：@hashinoriburogu）<br>
+本ツールは広告運用の判断の目安を提供するもので、成果を保証するものではありません。
+</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const yen = n => isFinite(n)? '¥' + Math.round(n).toLocaleString('ja-JP'): '―';
+function calc(){
+const price = parseFloat($('price').value) || 0;
+const margin = (parseFloat($('margin').value) || 0) / 100;
+const repeat = parseFloat($('repeat').value) || 1;
+const profit = (parseFloat($('profit').value) || 0) / 100;
+const cpc = parseFloat($('cpc').value);
+const orders = parseFloat($('orders').value);
+
+const grossFirst = price * margin; // 初回粗利
+const grossLtv = price * repeat * margin; // リピート込み粗利
+const cpaFirst = Math.max(grossFirst - price * profit, 0);
+const cpaLtv = Math.max(grossLtv - price * repeat * profit, 0);
+
+$('cpaFirst').textContent = yen(cpaFirst);
+$('cpaLtv').textContent = yen(cpaLtv);
+$('cpaBreak').textContent = yen(grossFirst);
+
+if (cpc > 0 && cpaFirst > 0){
+$('cvrBox').style.display = 'block';
+$('needCvr').textContent = (cpc / cpaFirst * 100).toFixed(1) + '% 以上';
+} else { $('cvrBox').style.display = 'none';}
+
+if (orders > 0 && cpaFirst > 0){
+$('budgetBox').style.display = 'block';
+$('needBudget').textContent = yen(orders * cpaFirst);
+} else { $('budgetBox').style.display = 'none';}
+}
+['price','margin','repeat','profit','cpc','orders'].forEach(id => $(id).addEventListener('input', calc));
+calc();
+</script>
+</body>
+</html>
