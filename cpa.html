@@ -2,67 +2,147 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>許容CPA計算ツール｜1件の獲得にいくらまで使える？</title>
-<meta name="description" content="客単価・粗利率・リピート回数から、広告で1件獲得に使える上限（許容CPA）と損益分岐CPAを計算する無料ツール。自社運用の広告の判断基準づくりに。">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>許容CPA計算ツール｜ハシ（自社運用のための広告ノート）</title>
+<meta name="description" content="客単価と粗利から、1件の獲得に広告費をいくらまで使えるか（許容CPA）を計算する無料ツール。自社運用の判断の目安に。">
 <style>
 :root{
---bg:#FAF6EF; --ink:#1C1A17; --teal:#0F766E; --teal-dark:#115E59;
---coral:#E0654A; --card:#FFFFFF; --line:#E5DCCB; --muted:#6B655C;
+  --teal:#0F766E; --teal-dark:#115E59; --ink:#1C1A17; --muted:#6B7280;
+  --bg:#FAF7F0; --card:#FFFFFF; --line:#E7E0D2; --accent:#B3402A;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
-body{background:var(--bg); color:var(--ink); font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.7; padding:20px 14px 48px;}
-.wrap{max-width:640px; margin:0 auto;}
-header{text-align:center; margin-bottom:22px;}
-header.brand{font-size:12px; letter-spacing:.12em; color:var(--teal-dark); font-weight:700;}
-header h1{font-size:24px; line-height:1.4; margin:8px 0 6px;}
-header p{font-size:13px; color:var(--muted);}
-.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; margin-bottom:16px;}
-.card h2{font-size:15px; margin-bottom:14px; color:var(--teal-dark);}
-.field{margin-bottom:14px;}
-.field label{display:block; font-size:13px; font-weight:700; margin-bottom:4px;}
-.field.hint{font-size:11px; color:var(--muted); margin-bottom:6px;}
-.field.row{display:flex; align-items:center; gap:8px;}
-.field input{flex:1; font-size:17px; padding:10px 12px; border:1.5px solid var(--line); border-radius:9px; background:#FFFDF8; width:100%;}
+body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); line-height:1.7;}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px 48px;}
+
+/* ===== HERO ===== */
+.hero{text-align:center; padding:36px 8px 28px;}
+.hero img.icon{width:104px; height:104px; border-radius:50%; border:3px solid #fff; box-shadow:0 4px 16px rgba(0,0,0,.12); object-fit:cover;}
+.hero .brand{font-size:12.5px; font-weight:700; color:var(--teal); letter-spacing:.08em; margin-top:12px;}
+.hero h1{font-size:27px; font-weight:900; line-height:1.45; margin:10px 0 12px;}
+.hero h1 .hl{color:var(--teal); border-bottom:4px solid #FDE68A; padding:0 2px;}
+.hero p.lead{font-size:14.5px; color:#374151; line-height:1.8;}
+.chips{display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:18px;}
+.chip{background:#fff; border:1.5px solid var(--teal); color:var(--teal-dark); font-size:12.5px; font-weight:800; border-radius:999px; padding:5px 14px;}
+.cta{display:inline-block; margin-top:22px; background:var(--teal); color:#fff; font-weight:800; font-size:16px; padding:14px 34px; border-radius:999px; text-decoration:none; box-shadow:0 4px 12px rgba(15,118,110,.35);}
+.cta:active{background:var(--teal-dark);}
+
+/* ===== SECTIONS ===== */
+section{margin-top:36px;}
+.sec-title{font-size:19px; font-weight:900; text-align:center; margin-bottom:16px;}
+.sec-title::after{content:""; display:block; width:44px; height:3px; background:var(--teal); border-radius:2px; margin:8px auto 0;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 18px; box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.checks{list-style:none;}
+.checks li{font-size:14.5px; padding:10px 0 10px 30px; position:relative; border-bottom:1px dashed var(--line);}
+.checks li:last-child{border-bottom:none;}
+.checks li::before{content:"✓"; position:absolute; left:2px; top:10px; width:20px; height:20px; background:#FEF3C7; color:var(--accent); font-weight:900; font-size:13px; border-radius:50%; text-align:center; line-height:20px;}
+.points{display:grid; gap:12px;}
+.point{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; display:flex; gap:14px; align-items:flex-start;}
+.point .num{flex:none; width:34px; height:34px; border-radius:50%; background:var(--teal); color:#fff; font-weight:900; font-size:16px; text-align:center; line-height:34px;}
+.point .t{font-weight:800; font-size:15px;}
+.point .d{font-size:13px; color:#4B5563; margin-top:2px;}
+.steps{display:grid; gap:10px;}
+.step{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+.step .n{flex:none; background:var(--ink); color:#fff; font-size:12px; font-weight:800; border-radius:6px; padding:2px 9px; margin-top:3px;}
+
+/* ===== TOOL ===== */
+.tool-sec{margin-top:40px;}
+.tool-head{background:var(--teal); color:#fff; border-radius:14px 14px 0 0; padding:16px 18px; text-align:center;}
+.tool-head .t{font-size:18px; font-weight:900;}
+.tool-head .d{font-size:12.5px; opacity:.9;}
+.tool-body{background:var(--card); border:1px solid var(--line); border-top:none; border-radius:0 0 14px 14px; padding:20px 18px;}
+.field{margin-bottom:18px;}
+.field label{display:block; font-size:14px; font-weight:700; margin-bottom:4px;}
+.field .hint{font-size:12px; color:var(--muted); margin-bottom:6px; line-height:1.6;}
+.field .row{display:flex; align-items:center; gap:8px;}
+.field input{flex:1; font-size:17px; padding:11px 12px; border:1.5px solid #D1D5DB; border-radius:9px; min-width:0; background:#fff;}
 .field input:focus{outline:none; border-color:var(--teal);}
-.field.unit{font-size:13px; color:var(--muted); white-space:nowrap;}
-.result-main{background:var(--teal); color:#fff; border-radius:14px; padding:22px 18px; text-align:center; margin-bottom:16px;}
-.result-main.label{font-size:13px; opacity:.9;}
-.result-main.value{font-size:40px; font-weight:800; line-height:1.2;}
-.result-main.sub{font-size:12px; opacity:.9; margin-top:4px;}
-.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
-.mini{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px;}
-.mini.label{font-size:11px; color:var(--muted);}
-.mini.value{font-size:21px; font-weight:800; color:var(--teal-dark);}
-.mini.note{font-size:11px; color:var(--muted); line-height:1.5;}
-.explain{font-size:13px;}
-.explain p{margin-bottom:10px;}
-.explain strong{color:var(--teal-dark);}
-.line-box{background:#06C755; border-radius:14px; padding:20px 18px; text-align:center; color:#fff;}
-.line-box.t{font-size:16px; font-weight:800; margin-bottom:6px;}
-.line-box p{font-size:12.5px; margin-bottom:14px; line-height:1.6;}
-/* ▼ LINEリンクは開設後に差し替え（href を公式アカウントの友だち追加URLにする） ▼ */
-.line-btn{display:inline-block; background:#fff; color:#06A94A; font-weight:800; font-size:15px; padding:12px 28px; border-radius:999px; text-decoration:none;}
-footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; line-height:1.8;}
-.adv{margin:14px 0 4px;}
+.field .unit{font-size:14px; font-weight:700; color:#4B5563;}
+.adv{margin:4px 0 18px;}
 .adv summary{list-style:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#E7F3F0; border:1.5px solid var(--teal); border-radius:10px; padding:13px 12px; font-size:14.5px; font-weight:800; color:var(--teal-dark); cursor:pointer; -webkit-tap-highlight-color:transparent;}
 .adv summary::-webkit-details-marker{display:none;}
 .adv summary::after{content:"▼"; font-size:11px; transition:transform .2s;}
 .adv[open] summary::after{transform:rotate(180deg);}
 .adv summary:active{background:#D8ECE8;}
-.adv-note{font-size:12px; color:var(--teal-dark); margin-top:8px; display:none;}
+.adv .adv-inner{border:1px solid var(--line); border-top:none; border-radius:0 0 10px 10px; padding:16px 14px 2px; background:#FDFCF9;}
+.result-main{background:linear-gradient(135deg,#FFFBEB,#FEF3C7); border:2px solid #F59E0B; border-radius:14px; padding:20px 16px; text-align:center;}
+.result-main .label{font-size:13.5px; font-weight:800; color:#92400E;}
+.result-main .value{font-size:42px; font-weight:900; color:var(--ink); line-height:1.2; margin:4px 0;}
+.result-main .sub{font-size:12.5px; color:#78350F;}
+.adv-note{font-size:12px; color:var(--teal-dark); margin-top:8px; display:none; font-weight:700;}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+.mini{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px;}
+.mini .label{font-size:12px; font-weight:800; color:var(--teal-dark);}
+.mini .value{font-size:23px; font-weight:900; margin:2px 0;}
+.mini .note{font-size:11.5px; color:var(--muted); line-height:1.6;}
+@media (max-width:480px){ .grid{grid-template-columns:1fr;} .hero h1{font-size:24px;} }
+
+/* ===== TEXT BLOCKS ===== */
+.explain p{font-size:14px; margin-bottom:12px; line-height:1.85;}
+.explain p:last-child{margin-bottom:0;}
+.explain strong{color:var(--teal-dark);}
+.faq details{border-bottom:1px dashed var(--line); padding:12px 0;}
+.faq details:last-child{border-bottom:none;}
+.faq summary{font-size:14.5px; font-weight:800; cursor:pointer; list-style:none;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::before{content:"Q. "; color:var(--teal);}
+.faq .a{font-size:13.5px; color:#374151; margin-top:8px; line-height:1.8;}
+
+/* ===== LINE / AUTHOR ===== */
+.line-box{background:#06C755; border-radius:14px; padding:24px 18px; text-align:center; color:#fff; margin-top:36px;}
+.line-box .t{font-size:16.5px; font-weight:900; margin-bottom:8px; line-height:1.6;}
+.line-box p{font-size:12.5px; margin-bottom:16px; line-height:1.7;}
+.line-btn{display:inline-block; background:#fff; color:#06A94A; font-weight:800; font-size:15.5px; padding:13px 30px; border-radius:999px; text-decoration:none;}
+.author{display:flex; gap:14px; align-items:center; margin-top:36px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px;}
+.author img{width:60px; height:60px; border-radius:50%; object-fit:cover; flex:none;}
+.author .name{font-weight:900; font-size:14.5px;}
+.author .bio{font-size:12.5px; color:#4B5563; line-height:1.7;}
+footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; line-height:1.8;}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-<div class="brand">ハシ｜自社運用のための広告ノート</div>
-<h1>許容CPA計算ツール</h1>
-<p>1件の獲得に、広告費はいくらまで使える？<br>客単価と粗利から「上限の目安」を出します。</p>
-</header>
 
+<div class="hero">
+<img class="icon" src="cpa_icon.webp" alt="メガネ柴犬先生">
+<div class="brand">ハシ｜自社運用のための広告ノート</div>
+<h1>広告費、1件いくらまで<br>使っていいか<span class="hl">分かりますか？</span></h1>
+<p class="lead">客単価と粗利を入れるだけ。<br>1件の獲得に使える広告費の上限「許容CPA」が、<br>その場で分かります。</p>
+<div class="chips">
+<span class="chip">無料</span>
+<span class="chip">登録不要</span>
+<span class="chip">入力は4つだけ</span>
+</div>
+<br>
+<a class="cta" href="#tool">今すぐ計算する ▼</a>
+</div>
+
+<section>
+<div class="sec-title">こんな状態になっていませんか</div>
 <div class="card">
-<h2>あなたの数字を入れてください</h2>
+<ul class="checks">
+<li>CPAがいくらまでならOKなのか、基準がないまま配信している</li>
+<li>売れているのに、月末に計算すると利益がほとんど残っていない</li>
+<li>広告を止める・続けるの判断が、なんとなくの感覚になっている</li>
+</ul>
+<p style="font-size:13.5px; margin-top:12px; color:#4B5563;">このモヤモヤの原因は、たいてい「上限の数字」を先に決めていないことです。まず上限を出すところから始めましょう。</p>
+</div>
+</section>
+
+<section>
+<div class="sec-title">このツールで分かること</div>
+<div class="points">
+<div class="point"><div class="num">1</div><div><div class="t">許容CPA（初回／リピート込み）</div><div class="d">目標の利益を残したうえで、1件に使える広告費の上限。配信の判断基準になります。</div></div></div>
+<div class="point"><div class="num">2</div><div><div class="t">損益分岐CPA</div><div class="d">利益ゼロになるライン。これを超えたら、売れるほど赤字が広がります。</div></div></div>
+<div class="point"><div class="num">3</div><div><div class="t">必要なCVRと広告費の目安</div><div class="d">クリック単価と目標件数を入れると、上限に収めるための成約率と月予算も出ます。</div></div></div>
+</div>
+</section>
+
+<div class="tool-sec" id="tool">
+<div class="tool-head">
+<div class="t">許容CPA計算ツール</div>
+<div class="d">数字を入れると、その場で計算されます</div>
+</div>
+<div class="tool-body">
 <div class="field">
 <label for="price">客単価（1件あたりの売上）</label>
 <div class="row"><input type="number" id="price" inputmode="numeric" value="10000" min="0"><span class="unit">円</span></div>
@@ -92,11 +172,10 @@ footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; l
 <div class="hint">入れると、その件数を取るのに必要な広告費の目安も出します。</div>
 <div class="row"><input type="number" id="orders" inputmode="numeric" placeholder="例：30" min="0"><span class="unit">件</span></div>
 </div>
-</div>
 
 <details class="adv">
 <summary>＋ くわしく計算する（任意）</summary>
-<div class="card" style="margin-top:10px;">
+<div class="adv-inner">
 <div class="field">
 <label for="feeRate">決済手数料率</label>
 <div class="hint">カード決済などの手数料。売上に対してかかる分を差し引いて計算します。</div>
@@ -144,18 +223,57 @@ footer{text-align:center; font-size:11px; color:var(--muted); margin-top:24px; l
 <div class="note">目標件数 × 許容CPA（初回ベース）で計算しています。</div>
 </div>
 </div>
+</div>
+</div>
 
+<section>
+<div class="sec-title">使い方</div>
+<div class="card steps">
+<div class="step"><span class="n">STEP 1</span><span>客単価・粗利率・購入回数・残したい利益率を入れる</span></div>
+<div class="step"><span class="n">STEP 2</span><span>出てきた許容CPAと、今の広告のCPAを見比べる</span></div>
+<div class="step"><span class="n">STEP 3</span><span>上限を超えている日は「続ける／改善する／止める」を数字で判断する</span></div>
+</div>
+</section>
+
+<section>
+<div class="sec-title">結果の見方</div>
 <div class="card explain">
-<h2>結果の見方</h2>
 <p><strong>許容CPA</strong>は「この金額までなら広告費を使っても、目標の利益が残る」という上限です。日々の広告の数字がこの範囲に収まっているかを見るのが、自社運用のいちばん基本の判断になります。</p>
 <p>実際のCPAが許容CPAを<strong>少し超える</strong>程度なら、まず広告文やページの改善で下げる余地があります。逆に<strong>大きく超え続けている</strong>場合は、広告の調整だけでは難しいことが多く、単価・粗利・リピートの設計そのものを見直すサインです。</p>
 <p>※このツールの数字は目安です。「くわしく計算する」を開くと、決済手数料・キャンセル率・固定費まで入れた計算もできます。実際の判断は自社の収支に合わせて調整してください。</p>
 </div>
+</section>
+
+<section>
+<div class="sec-title">よくある質問</div>
+<div class="card faq">
+<details>
+<summary>粗利率が分かりません</summary>
+<div class="a">まずは50%で計算してみてください。そのあと、原価や送料などの変動費を売上から引いた割合が分かってきたら、数字を入れ替えてください。ざっくりでも「上限がある」こと自体に意味があります。</div>
+</details>
+<details>
+<summary>リピート込みの許容CPAまで使って大丈夫？</summary>
+<div class="a">リピートが実際にある商材なら目安になりますが、初回のキャッシュはマイナスになります。資金に余裕がないうちは、初回ベースの許容CPAで運用するのが安全です。</div>
+</details>
+<details>
+<summary>計算した数字は保存されますか？</summary>
+<div class="a">保存されません。入力した数字はあなたのブラウザの中だけで計算され、外部に送信されることはありません。</div>
+</details>
+</div>
+</section>
 
 <div class="line-box">
 <div class="t">結果の見方チェックリスト（無料版）をLINEでお渡しします</div>
 <p>「許容CPAが出たあと、次に何をすればいいか」をまとめたチェックリストです。<br>あわせて、広告の数字の読み解きも少しずつお届けします。</p>
 <a class="line-btn" id="lineBtn" href="https://lin.ee/q8prNgI" target="_blank" rel="noopener">LINEで受け取る</a>
+</div>
+
+<div class="author">
+<img src="cpa_icon.webp" alt="メガネ柴犬先生">
+<div>
+<div class="name">ハシ｜自社運用のための広告ノート</div>
+<div class="bio">広告運用歴6年。代理店でリード獲得案件を中心に運用してきました。このツールは、自社運用を始める方が「まず上限を決める」ところから進められるように作ったものです。X（@hashinoriburogu）でも数字の読み解きを発信しています。</div>
+</div>
 </div>
 
 <footer>
@@ -179,9 +297,9 @@ const cancel = (parseFloat($('cancelRate').value) || 0) / 100;
 const fixed = parseFloat($('fixedCost').value) || 0;
 const fixedPer = (fixed > 0 && orders > 0)? fixed / orders: 0;
 
-const effPrice = price * (1 - cancel); // キャンセルを除いた実質単価
-const grossFirst = effPrice * (margin - fee) - fixedPer; // 初回粗利（手数料・固定費按分を差引）
-const grossLtv = effPrice * repeat * (margin - fee) - fixedPer; // リピート込み粗利
+const effPrice = price * (1 - cancel);
+const grossFirst = effPrice * (margin - fee) - fixedPer;
+const grossLtv = effPrice * repeat * (margin - fee) - fixedPer;
 $('advNote').style.display = (fee > 0 || cancel > 0 || fixedPer > 0)? 'block': 'none';
 const cpaFirst = Math.max(grossFirst - price * profit, 0);
 const cpaLtv = Math.max(grossLtv - price * repeat * profit, 0);
