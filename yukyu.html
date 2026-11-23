@@ -261,6 +261,37 @@
       .result-comment { margin: 10px 0 0; font-size: 16.5px; font-weight: 700; color: #5a6b80; }
       .result-best { margin: 14px 0 0; font-size: 15px; font-weight: 800; color: #93a3b5; }
 
+      /* ===== ランキング ===== */
+      .rank-form { margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+      .rank-form input {
+        font-family: inherit; font-size: 17px; font-weight: 700; color: #33475e;
+        border: 2.5px solid #d9dfea; border-radius: 999px; padding: 11px 18px; width: 190px;
+        outline: none; background: #fffdf5;
+      }
+      .rank-form input:focus { border-color: #2bb3a3; }
+      .rank-submit {
+        border: none; cursor: pointer; background: #2bb3a3; color: #fff;
+        font-size: 17px; font-weight: 800; padding: 12px 22px; border-radius: 999px;
+        box-shadow: 0 4px 0 #1f8578;
+      }
+      .rank-submit:disabled { background: #b9c8d4; box-shadow: 0 4px 0 #93a3b5; cursor: default; }
+      .rank-msg { width: 100%; margin-top: 8px; font-size: 14.5px; font-weight: 800; color: #2b8a7e; min-height: 20px; }
+      .sub-btn {
+        margin-top: 16px; border: none; cursor: pointer; background: transparent;
+        color: #7c6a4f; font-size: 16.5px; font-weight: 800; text-decoration: underline;
+        text-underline-offset: 4px; padding: 6px 10px;
+      }
+      .rank-list { margin: 18px auto 4px; max-width: 340px; text-align: left; }
+      .rank-row {
+        display: flex; align-items: baseline; gap: 10px;
+        padding: 8px 12px; border-radius: 12px; font-weight: 800; color: #33475e;
+      }
+      .rank-row:nth-child(odd) { background: #fff6df; }
+      .rank-row .rk { width: 34px; flex: none; font-size: 17px; color: #b3813f; }
+      .rank-row .nm { flex: 1; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rank-row .sc { font-size: 19px; color: #e0492f; }
+      .rank-empty { text-align: center; color: #93a3b5; font-weight: 700; font-size: 16px; padding: 14px 0; }
+
       @media (prefers-reduced-motion: reduce) {
         #hint { animation: none; }
         .popup { animation-duration: .01s; }
@@ -316,6 +347,8 @@
           </div>
           <br />
           <button id="startBtn" class="big-btn" type="button">タップではじめる</button>
+          <br />
+          <button id="rankBtnStart" class="sub-btn" type="button">ランキングを見る</button>
         </div>
       </div>
 
@@ -327,7 +360,23 @@
           <p class="lost-text" id="lostText">0連休を失いました</p>
           <p class="result-comment" id="resultComment">休みは儚い…</p>
           <p class="result-best" id="resultBest">ベスト記録：0連休</p>
+          <div class="rank-form">
+            <input id="nameInput" type="text" maxlength="20" placeholder="ニックネーム" autocomplete="off" />
+            <button id="submitBtn" class="rank-submit" type="button">ランキングに登録</button>
+            <div class="rank-msg" id="submitMsg"></div>
+          </div>
           <button id="retryBtn" class="big-btn" type="button">もう一回</button>
+          <br />
+          <button id="rankBtnResult" class="sub-btn" type="button">ランキングを見る</button>
+        </div>
+      </div>
+
+      <!-- ランキング画面 -->
+      <div id="rankScreen" class="overlay hidden">
+        <div class="card">
+          <div class="result-label">ランキング</div>
+          <div id="rankList" class="rank-list"><div class="rank-empty">読み込み中…</div></div>
+          <button id="rankClose" class="big-btn" type="button">閉じる</button>
         </div>
       </div>
     </div>
@@ -364,6 +413,11 @@
         var lostText = document.getElementById("lostText");
         var resultComment = document.getElementById("resultComment");
         var resultBest = document.getElementById("resultBest");
+        var nameInput = document.getElementById("nameInput");
+        var submitBtn = document.getElementById("submitBtn");
+        var submitMsg = document.getElementById("submitMsg");
+        var rankScreen = document.getElementById("rankScreen");
+        var rankList = document.getElementById("rankList");
 
         tray.style.left = BASE_X + "px";
         tray.style.width = BASE_W + "px";
@@ -487,6 +541,67 @@
           setTimeout(function () { if (el.parentNode) el.remove(); }, 1200);
         }
 
+        /* ===== ランキング（Google Apps Script） ===== */
+        var GAS_URL = "https://script.google.com/macros/s/AKfycbyy1K2XFSm0gdi6RaN4W0ASHHLjwp3ySFSdWg-dOqhDPFMkmBwDTciSCJ4Um8OAdPNGig/exec";
+        var GAME_ID = "yukyu";
+        var submitted = false;
+
+        function loadRanking(done) {
+          var cbName = "rkcb" + Date.now();
+          var sc = document.createElement("script");
+          window[cbName] = function (data) {
+            delete window[cbName];
+            if (sc.parentNode) sc.remove();
+            done(data && data.top ? data.top : []);
+          };
+          sc.onerror = function () {
+            delete window[cbName];
+            if (sc.parentNode) sc.remove();
+            done(null);
+          };
+          sc.src = GAS_URL + "?game=" + GAME_ID + "&callback=" + cbName;
+          document.body.appendChild(sc);
+        }
+
+        function renderRanking(list) {
+          if (!list) { rankList.innerHTML = '<div class="rank-empty">読み込めませんでした</div>'; return; }
+          if (!list.length) { rankList.innerHTML = '<div class="rank-empty">まだ記録がありません。一番乗りを狙おう！</div>'; return; }
+          var medals = ["🥇", "🥈", "🥉"];
+          var html = "";
+          for (var i = 0; i < list.length; i++) {
+            var nm = String(list[i].name || "ななし").replace(/[<>&"]/g, "");
+            html += '<div class="rank-row"><span class="rk">' + (medals[i] || (i + 1) + "位") + '</span><span class="nm">' + nm + '</span><span class="sc">' + list[i].score + '連休</span></div>';
+          }
+          rankList.innerHTML = html;
+        }
+
+        function openRanking() {
+          rankList.innerHTML = '<div class="rank-empty">読み込み中…</div>';
+          rankScreen.classList.remove("hidden");
+          loadRanking(renderRanking);
+        }
+
+        function submitScore() {
+          if (submitted || S.count < 1) return;
+          submitted = true;
+          submitBtn.disabled = true;
+          var name = (nameInput.value || "").trim() || "ななし";
+          try { localStorage.setItem("yukyu_name", name); } catch (e) {}
+          submitMsg.textContent = "登録中…";
+          fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ game: GAME_ID, name: name, score: S.count })
+          }).then(function () {
+            submitMsg.textContent = "登録しました！ランキングで確認してね";
+          }).catch(function () {
+            submitMsg.textContent = "登録に失敗しました…通信を確認してね";
+            submitted = false;
+            submitBtn.disabled = false;
+          });
+        }
+
         /* ===== ゲーム進行 ===== */
         function drop() {
           if (S.phase !== "playing" || !S.mover) return;
@@ -568,6 +683,10 @@
             S.count >= 1 ? "休みは儚い…。次はもっと積めるはず。" :
                            "1枚目から落としましたね…。度胸は認めます。";
           resultBest.textContent = "ベスト記録：" + S.best + "連休";
+          try { nameInput.value = localStorage.getItem("yukyu_name") || ""; } catch (e) {}
+          submitted = false;
+          submitBtn.disabled = S.count < 1;
+          submitMsg.textContent = S.count < 1 ? "1連休以上で登録できます" : "";
           resultScreen.classList.remove("hidden");
           updateHud(false);
         }
@@ -590,6 +709,7 @@
           ensureAudio();
           startScreen.classList.add("hidden");
           resultScreen.classList.add("hidden");
+          rankScreen.classList.add("hidden");
           hint.style.opacity = "1";
           resetGame();
           S.phase = "playing";
@@ -663,6 +783,10 @@
         });
         document.getElementById("startBtn").addEventListener("click", startGame);
         document.getElementById("retryBtn").addEventListener("click", startGame);
+        submitBtn.addEventListener("click", submitScore);
+        document.getElementById("rankBtnStart").addEventListener("click", openRanking);
+        document.getElementById("rankBtnResult").addEventListener("click", openRanking);
+        document.getElementById("rankClose").addEventListener("click", function () { rankScreen.classList.add("hidden"); });
         window.addEventListener("keydown", function (e) {
           if (e.code === "Space" || e.code === "Enter") {
             e.preventDefault();
