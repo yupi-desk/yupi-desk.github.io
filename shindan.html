@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16タイプ妖怪診断｜あなたの性格はどの妖怪？</title>
+<meta name="description" content="12の質問に答えるだけ。あなたの性格タイプを、かわいい妖怪キャラで診断します。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#FAF6EF; --ink:#1C1A17; --card:#FFFFFF; --accent:#B3402A;
+--nt:#7C5CBF; --nf:#3E9B6A; --sj:#3E7CB1; --sp:#C9A227;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;line-height:1.7;}
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 64px;}
+h1{font-size:30px;font-weight:900;text-align:center;line-height:1.35;}
+.sub{text-align:center;font-size:14px;color:#6b655c;margin-top:8px;}
+.card{background:var(--card);border-radius:20px;padding:24px 20px;box-shadow:0 4px 18px rgba(28,26,23,.08);margin-top:20px;}
+.hero-img{width:100%;border-radius:16px;display:block;}
+.btn{display:block;width:100%;padding:16px;border:none;border-radius:999px;background:var(--accent);color:#fff;font-family:inherit;font-size:18px;font-weight:900;cursor:pointer;margin-top:20px;}
+.btn:active{transform:scale(.98);}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid #e3ddd2;}
+.progress{height:10px;background:#ece5d8;border-radius:99px;overflow:hidden;margin-top:6px;}
+.progress > div{height:100%;background:var(--accent);border-radius:99px;transition:width.3s;}
+.qnum{font-size:13px;color:#6b655c;font-weight:700;}
+.qtext{font-size:20px;font-weight:900;margin:10px 0 18px;line-height:1.5;}
+.choice{display:block;width:100%;text-align:left;padding:16px;border:2px solid #e3ddd2;border-radius:16px;background:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px;line-height:1.5;}
+.choice:active{border-color:var(--accent);background:#fdf1ec;}
+.hidden{display:none;}
+.result-band{border-radius:14px;color:#fff;text-align:center;padding:8px;font-weight:900;font-size:14px;letter-spacing:.08em;}
+.result-img{width:min(300px,80%);display:block;margin:18px auto 6px;border-radius:16px;}
+.result-code{text-align:center;font-size:15px;font-weight:900;color:#6b655c;letter-spacing:.15em;}
+.result-name{text-align:center;font-size:27px;font-weight:900;margin-top:2px;}
+.result-nick{text-align:center;font-size:16px;font-weight:700;color:var(--accent);}
+.result-core{margin-top:16px;font-size:16px;text-align:center;}
+.strength{margin-top:14px;background:#faf3e3;border-radius:12px;padding:12px 14px;font-size:15px;}
+.strength b{color:var(--accent);}
+.more{margin-top:20px;border:2px dashed #d8d0bf;border-radius:16px;padding:16px;}
+.more h3{font-size:16px;font-weight:900;}
+.more ul{margin:8px 0 0 18px;font-size:14px;color:#4c463e;}
+.share-row{display:flex;gap:10px;margin-top:14px;}
+.share-row.btn{margin-top:0;font-size:15px;padding:13px;}
+.btn.x{background:#000;}
+h2.section{font-size:20px;font-weight:900;margin:36px 0 4px;text-align:center;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+.grid button{background:#fff;border:2px solid transparent;border-radius:14px;padding:8px 4px 6px;cursor:pointer;font-family:inherit;}
+.grid button:active{border-color:var(--accent);}
+.grid img{width:100%;border-radius:10px;display:block;}
+.grid.gc{font-size:11px;font-weight:900;letter-spacing:.05em;margin-top:4px;}
+.grid.gn{font-size:11px;color:#6b655c;font-weight:700;}
+.foot{text-align:center;font-size:12px;color:#9a937f;margin-top:40px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- スタート画面 -->
+<div id="screen-start">
+<h1>16タイプ妖怪診断</h1>
+<p class="sub">12の質問に答えるだけ。<br>あなたの性格は、どの妖怪タイプ？</p>
+<div class="card">
+<img class="hero-img" src="shindan_infp.webp" alt="アマビエ">
+<p style="margin-top:14px;font-size:15px;">性格を4つの軸で見ていく、MBTI風の16タイプ診断です。結果では、あなたにそっくりな「かわいい妖怪」が分かります。</p>
+<button class="btn" onclick="startQuiz()">診断をはじめる（約1分）</button>
+</div>
+
+<h2 class="section">全16タイプ図鑑</h2>
+<p class="sub">タップすると、ざっくり紹介が見られます</p>
+<div class="grid" id="zukan"></div>
+<div class="card hidden" id="zukan-detail"></div>
+</div>
+
+<!-- クイズ画面 -->
+<div id="screen-quiz" class="hidden">
+<div class="card">
+<div class="qnum"><span id="qnum"></span> / 12</div>
+<div class="progress"><div id="qbar" style="width:0%"></div></div>
+<div class="qtext" id="qtext"></div>
+<div id="choices"></div>
+</div>
+</div>
+
+<!-- 結果画面 -->
+<div id="screen-result" class="hidden">
+<div class="card">
+<div class="result-band" id="r-band"></div>
+<img class="result-img" id="r-img" alt="">
+<div class="result-code" id="r-code"></div>
+<div class="result-name" id="r-name"></div>
+<div class="result-nick" id="r-nick"></div>
+<p class="result-core" id="r-core"></p>
+<div class="strength" id="r-strength"></div>
+<div class="more">
+<h3>もっと詳しく知りたい人へ</h3>
+<p style="font-size:14px;color:#4c463e;">有料の詳細レポートでは、あなたのタイプをここまで深掘りします。</p>
+<ul>
+<li>性格の芯（詳しい解説）</li>
+<li>強みと弱みの活かし方</li>
+<li>疲れ方と回復法</li>
+<li>人との距離感・恋愛傾向</li>
+<li>向いている働き方</li>
+<li>相性のいいタイプ・要注意タイプ</li>
+<li>妖怪キャラの紹介と由来</li>
+<li>しんどい時の処方箋</li>
+</ul>
+<a class="btn" id="r-note" href="https://note.com/naruhodo_memo1" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;">詳細レポートを見る（note）</a>
+</div>
+<div class="share-row">
+<button class="btn x" onclick="shareX()">Xで結果をシェア</button>
+<button class="btn ghost" onclick="location.href='shindan.html'">もう一度診断</button>
+</div>
+</div>
+</div>
+
+<p class="foot">16タイプ妖怪診断｜性格の傾向を楽しむためのエンタメ診断です</p>
+</div>
+
+<script>
+const GROUPS = {
+NT:{name:"分析家グループ", color:"var(--nt)"},
+NF:{name:"外交官グループ", color:"var(--nf)"},
+SJ:{name:"番人グループ", color:"var(--sj)"},
+SP:{name:"探検家グループ", color:"var(--sp)"}
+};
+const TYPES = {
+INTJ:{g:"NT", yokai:"九尾の狐", nick:"千里を見通す策士", core:"全部先読みして、一番いい一手を打つ頭脳派。", strength:"先読み力：一手先どころか十手先まで読む計画力"},
+INTP:{g:"NT", yokai:"河童", nick:"水辺ののんびり研究者", core:"「なんで？」を考えている時がいちばん幸せ。", strength:"発想の深さ：誰も気づかない仕組みを見抜く洞察力"},
+ENTJ:{g:"NT", yokai:"大天狗", nick:"山の総大将", core:"決めたら迷わない、みんなを率いるボス気質。", strength:"決断と統率：場を動かすリーダーシップ"},
+ENTP:{g:"NT", yokai:"化け狸", nick:"変身アイデアマン", core:"ルールは破るためじゃなく、遊ぶためにある。", strength:"アイデアの回転：次から次へと湧く発想と話術"},
+INFJ:{g:"NF", yokai:"雪女", nick:"静かな心の守り手", core:"言葉にしない優しさで、人をそっと包む。", strength:"人の心を読む力：相手の本音にいち早く気づく感性"},
+INFP:{g:"NF", yokai:"アマビエ", nick:"癒しの夢見人", core:"自分の世界を大切にする、夢見る理想家。", strength:"共感力：人の痛みに自然と寄り添える優しさ"},
+ENFJ:{g:"NF", yokai:"座敷童", nick:"幸運を運ぶ和ませ役", core:"みんなの笑顔が、そのまま自分の幸せ。", strength:"場を和ませる力：いるだけで空気が明るくなる存在感"},
+ENFP:{g:"NF", yokai:"猫又", nick:"自由気ままな冒険家", core:"興味のままに飛び回る、縛られない自由人。", strength:"好奇心と行動力：面白そうと思ったら即行動"},
+ISTJ:{g:"SJ", yokai:"ぬりかべ", nick:"動じない堅実な番人", core:"約束と順番を守る、信頼の置ける堅実派。", strength:"信頼感：任せたら最後までやり切る安定感"},
+ISFJ:{g:"SJ", yokai:"豆腐小僧", nick:"健気な世話焼き", core:"誰かの役に立てることが、何よりの喜び。", strength:"気配り：言われる前にそっと手を差し伸べる細やかさ"},
+ESTJ:{g:"SJ", yokai:"烏天狗", nick:"規律正しい現場のリーダー", core:"決まりを守って、現場を回す仕切り役。", strength:"仕切り力：物事を整理して前に進める実行力"},
+ESFJ:{g:"SJ", yokai:"からかさお化け", nick:"おもてなし上手なホスト", core:"みんなに楽しんでほしい、世話焼きホスト。", strength:"おもてなし力：人の輪の中心で場を温める力"},
+ISTP:{g:"SP", yokai:"鎌鼬", nick:"疾風の職人", core:"黙って手を動かす、技で語る職人。", strength:"職人の技：道具と技術を極める器用さと冷静さ"},
+ISFP:{g:"SP", yokai:"木霊", nick:"森の感性アーティスト", core:"感じるままに表現する、穏やかな芸術家。", strength:"感性：言葉にできない美しさを捉えるアンテナ"},
+ESTP:{g:"SP", yokai:"風神", nick:"嵐を呼ぶチャレンジャー", core:"考えるより先に動く、スリル好きの挑戦者。", strength:"度胸と瞬発力：ピンチほど燃える勝負強さ"},
+ESFP:{g:"SP", yokai:"提灯お化け", nick:"笑顔を灯すエンターテイナー", core:"その場にいる全員を、笑顔にしたい人。", strength:"笑顔を生む力：天性の明るさで場を照らす力"}
+};
+const QUESTIONS = [
+{axis:"EI", q:"休みの日、エネルギーが回復するのは？", a:[["E","友達とワイワイ出かける"],["I","一人で好きなことに没頭する"]]},
+{axis:"EI", q:"大人数の集まりでは、あなたは？", a:[["E","気づいたら話の中心にいる"],["I","気の合う人とじっくり話す"]]},
+{axis:"EI", q:"考えをまとめるときは？", a:[["E","話しながら考える"],["I","頭の中で整理してから話す"]]},
+{axis:"SN", q:"説明を聞いてしっくりくるのは？", a:[["S","具体例や体験談が多い説明"],["N","全体の仕組みや意味が分かる説明"]]},
+{axis:"SN", q:"興味が湧くのはどっち？", a:[["S","今すぐ役立つ実用的なこと"],["N","将来の可能性や新しいアイデア"]]},
+{axis:"SN", q:"作業の進め方は？", a:[["S","手順どおり着実に進める"],["N","ひらめきを大事に、順番は後から整える"]]},
+{axis:"TF", q:"決断で大事にするのは？", a:[["T","筋が通っているか、公平か"],["F","みんなが納得して幸せか"]]},
+{axis:"TF", q:"友達に相談されたら、まず？", a:[["T","解決策を一緒に考える"],["F","気持ちに寄り添って聞く"]]},
+{axis:"TF", q:"チームで意見が割れたら？", a:[["T","正しいと思う方を主張する"],["F","場の空気と関係を優先する"]]},
+{axis:"JP", q:"旅行の計画は？", a:[["J","スケジュールをしっかり立てる"],["P","現地の気分で決める"]]},
+{axis:"JP", q:"締切のある作業は？", a:[["J","早めに終わらせて安心したい"],["P","締切が近づくと集中力が上がる"]]},
+{axis:"JP", q:"部屋や机の状態は？", a:[["J","物の定位置が決まっている"],["P","散らかっていても自分は分かる"]]}
+];
+let idx = 0;
+const score = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+
+function show(id){
+["screen-start","screen-quiz","screen-result"].forEach(s=>{
+document.getElementById(s).classList.toggle("hidden", s!==id);
+});
+window.scrollTo(0,0);
+}
+function startQuiz(){
+idx = 0;
+Object.keys(score).forEach(k=>score[k]=0);
+show("screen-quiz");
+renderQ();
+}
+function renderQ(){
+const item = QUESTIONS[idx];
+document.getElementById("qnum").textContent = "Q" + (idx+1);
+document.getElementById("qbar").style.width = (idx/QUESTIONS.length*100) + "%";
+document.getElementById("qtext").textContent = item.q;
+const box = document.getElementById("choices");
+box.innerHTML = "";
+item.a.forEach(([letter, text])=>{
+const b = document.createElement("button");
+b.className = "choice";
+b.textContent = text;
+b.onclick = ()=>{ score[letter]++; idx++; idx < QUESTIONS.length? renderQ(): finish();};
+box.appendChild(b);
+});
+}
+function finish(){
+const code = (score.E>=score.I?"E":"I") + (score.S>=score.N?"S":"N") + (score.T>=score.F?"T":"F") + (score.J>=score.P?"J":"P");
+renderResult(code);
+}
+function renderResult(code){
+const t = TYPES[code];
+const g = GROUPS[t.g];
+const band = document.getElementById("r-band");
+band.textContent = g.name;
+band.style.background = g.color;
+const img = document.getElementById("r-img");
+img.src = "shindan_" + code.toLowerCase() + ".webp";
+img.alt = t.yokai;
+document.getElementById("r-code").textContent = code;
+document.getElementById("r-name").textContent = t.yokai;
+document.getElementById("r-nick").textContent = "― " + t.nick + " ―";
+document.getElementById("r-core").textContent = t.core;
+document.getElementById("r-strength").innerHTML = "あなたの強み：<b>" + t.strength + "</b>";
+show("screen-result");
+}
+function shareX(){
+const code = document.getElementById("r-code").textContent;
+const t = TYPES[code];
+const text = "私の妖怪タイプはでした！ ― " + t.nick + " ― あなたはどの妖怪？";
+const url = "https://yupi-desk.github.io/shindan.html?result=" + code;
+window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(url), "_blank");
+}
+// 図鑑
+const zukan = document.getElementById("zukan");
+Object.keys(TYPES).forEach(code=>{
+const t = TYPES[code];
+const b = document.createElement("button");
+b.innerHTML = '<img src="shindan_' + code.toLowerCase() + '.webp" alt="' + t.yokai + '"><div class="gc">' + code + '</div><div class="gn">' + t.yokai + '</div>';
+b.onclick = ()=>{
+const d = document.getElementById("zukan-detail");
+d.classList.remove("hidden");
+d.innerHTML = '<div class="result-code">' + code + '（' + GROUPS[t.g].name + '）</div>' +
+'<div class="result-name" style="font-size:22px;">' + t.yokai + '</div>' +
+'<div class="result-nick">― ' + t.nick + ' ―</div>' +
+'<p class="result-core">' + t.core + '</p>' +
+'<div class="strength">強み：<b>' + t.strength + '</b></div>';
+d.scrollIntoView({behavior:"smooth", block:"center"});
+};
+zukan.appendChild(b);
+});
+// 共有リンクから直接結果表示
+const param = new URLSearchParams(location.search).get("result");
+if (param && TYPES[param.toUpperCase()]) renderResult(param.toUpperCase());
+</script>
+</body>
+</html>
