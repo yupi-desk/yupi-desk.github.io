@@ -11,7 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet" />
     <style>
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-      html, body { height: 100%; }
+      html, body { height: 100%; touch-action: none; overscroll-behavior: none; }
+      button, #stage { touch-action: none; }
+      input { touch-action: manipulation; }
       body {
         margin: 0; overflow: hidden;
         background: linear-gradient(160deg, #274b63 0%, #1d3a4f 100%);
@@ -438,9 +440,23 @@
           setTimeout(function () { if (el.parentNode) el.remove(); }, 1200);
         }
 
+        /* ===== タップズーム防止（iOS Safari対策） ===== */
+        document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+        document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
+        var lastTouchEnd = 0;
+        document.addEventListener("touchend", function (e) {
+          var now = Date.now();
+          if (now - lastTouchEnd <= 350) e.preventDefault();
+          lastTouchEnd = now;
+        }, { passive: false });
+
         /* ===== 撮影 ===== */
+        var lastShootAt = 0;
         function shoot() {
           if (S.phase !== "playing") return;
+          var nowMs = performance.now();
+          if (nowMs - lastShootAt < 400) return;
+          lastShootAt = nowMs;
           ensureAudio();
           sndShutter();
           flash.classList.remove("on");
@@ -517,7 +533,7 @@
         }
         document.getElementById("startBtn").addEventListener("click", startGame);
         document.getElementById("retryBtn").addEventListener("click", startGame);
-        shutterBtn.addEventListener("click", shoot);
+        shutterBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); shoot(); });
         submitBtn.addEventListener("click", submitScore);
         document.getElementById("rankBtnStart").addEventListener("click", openRanking);
         document.getElementById("rankBtnResult").addEventListener("click", openRanking);
