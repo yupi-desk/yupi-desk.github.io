@@ -388,13 +388,20 @@
                 '<div class="p-mouth"></div>' +
               '</div>';
             groupEl.appendChild(el);
-            S.people.push({
-              el: el, blink: false, grump: false,
-              nextBlink: now + rand(500, 3000),
-              blinkUntil: 0,
+            // 開始した瞬間は全員そろっていない状態から始める（連打対策：
+            // 最初からまばたき中／真顔の人が混ざるよう事前に状態を割り振る）
+            var startBlink = Math.random() < 0.16;
+            var startGrump = Math.random() < 0.22;
+            var person = {
+              el: el, blink: startBlink, grump: startGrump,
+              nextBlink: now + rand(300, 3000),
+              blinkUntil: startBlink ? now + rand(150, 420) : 0,
               nextGrump: now + rand(1200, 6500),
-              grumpUntil: 0
-            });
+              grumpUntil: startGrump ? now + rand(350, 1050) : 0
+            };
+            el.classList.toggle("blink", person.blink);
+            el.classList.toggle("grump", person.grump);
+            S.people.push(person);
           }
           countNum.textContent = S.n;
         }
@@ -464,6 +471,7 @@
           flash.classList.add("on");
           var bad = badPeople();
           S.phase = "freeze";
+          S.freezeKind = bad.length === 0 ? "good" : "bad";
           shutterBtn.disabled = true;
           if (bad.length === 0) {
             S.score = S.n;
@@ -492,10 +500,14 @@
         function nextRound() {
           S.roundTime = Math.min(20, 11 + (S.n - START_N) * 0.6);
           S.timeLeft = S.roundTime;
+          timerBar.style.width = "100%";
           buildPeople(performance.now());
-          callout.textContent = "はい、チーズ！ 全員の目が開いてる瞬間に📸";
-          S.phase = "playing";
-          shutterBtn.disabled = false;
+          // 構え時間：この間は表情が動き続けてシャッターが切れないので、
+          // ラウンド開始直後の連打では成功しない
+          callout.textContent = "よーい…みんな、こっち見てー！";
+          S.phase = "settle";
+          S.settleUntil = performance.now() + 800;
+          shutterBtn.disabled = true;
         }
 
         /* ===== 進行 ===== */
@@ -544,12 +556,22 @@
         var last = performance.now();
         function frame(now) {
           var dt = Math.min(0.05, (now - last) / 1000); last = now;
-          if (S.phase === "playing") {
+          if (S.phase === "settle") {
+            updatePeople(now);
+            if (now >= S.settleUntil) {
+              S.phase = "playing";
+              shutterBtn.disabled = false;
+              callout.textContent = "はい、チーズ！ 全員の目が開いてる瞬間に📸";
+            }
+          } else if (S.phase === "freeze" && S.freezeKind === "good") {
+            updatePeople(now);
+          } else if (S.phase === "playing") {
             updatePeople(now);
             S.timeLeft -= dt;
             if (S.timeLeft <= 0) {
               S.timeLeft = 0;
               S.phase = "freeze";
+              S.freezeKind = "bad";
               shutterBtn.disabled = true;
               sndBad();
               showPopup("時間切れ…！", 270, 250, true);
